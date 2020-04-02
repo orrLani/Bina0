@@ -6,7 +6,8 @@ if __name__ == '__main__':
 
 def sum(a,b):
     return a+b
-
+def func():
+    print("num")
 
 def bar(x):
     print("test")
