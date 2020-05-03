@@ -34,16 +34,30 @@ class CachedMapDistanceFinder:
 
     def get_map_cost_between(self, src_junction: Junction, tgt_junction: Junction) -> Optional[Cost]:
         """
-        TODO [Ex.13]: Implement this method!
-        If the distance for the given source & target junctions is already stored in the cache, just return it.
-        If the distance has not been stored in the cache yet, create a `MapProblem` with the given source & target,
-         solve this problem using the `self.map_problem_solver` (that is given in the c'tor), store the cost of
-         the solution in the cache, and finally return the cost of the solution. If the solver has not found a
-         solution (the `is_solution_found` field is negative), the returned value should also be None. Even in this
-         case (no solution found), you also should use the cache (store None in the cache).
-        Use `_is_in_cache()`, `_get_from_cache()` and `_insert_to_cache()` methods to access the cache. Do not
-         access the `_cache` field directly.
-        The cache key should include the source & target indices.
-        """
+             _TODO [Ex.13]: Implement this method!
+             If the distance for the given source & target junctions is already stored in the cache, just return it.
+             If the distance has not been stored in the cache yet, create a `MapProblem` with the given source & target,
+              solve this problem using the `self.map_problem_solver` (that is given in the c'tor), store the cost of
+              the solution in the cache, and finally return the cost of the solution. If the solver has not found a
+              solution (the `is_solution_found` field is negative), the returned value should also be None. Even in this
+              case (no solution found), you also should use the cache (store None in the cache).
+             Use `_is_in_cache()`, `_get_from_cache()` and `_insert_to_cache()` methods to access the cache. Do not
+              access the `_cache` field directly.
+             The cache key should include the source & target indices.
+             """
 
-        raise NotImplementedError  # TODO: remove this line!
+        if self._is_in_cache((src_junction.index,tgt_junction.index)):
+            return self._get_from_cache((src_junction.index,tgt_junction.index))
+
+        problem = MapProblem(self.streets_map,src_junction.index,tgt_junction.index)
+
+        res = self.map_problem_solver.solve_problem(problem)
+        if not res.is_solution_found:
+            self._insert_to_cache((src_junction.index, tgt_junction.index), None)
+            return None
+
+        self._insert_to_cache((src_junction.index, tgt_junction.index),res.solution_cost)
+        return res.solution_cost
+
+
+      #  raise NotImplementedError  # TODO: remove this line!
