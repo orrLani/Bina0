@@ -47,8 +47,8 @@ class MDAMaxAirDistHeuristic(HeuristicFunction):
             self.problem.get_all_certain_junctions_in_remaining_ambulance_path(state)
         if len(all_certain_junctions_in_remaining_ambulance_path) < 2:
             return 0
-        max_path=max(item_1.calc_air_distance_from(item_2) for item_1 in all_certain_junctions_in_remaining_ambulance_path
-            for item_2 in all_certain_junctions_in_remaining_ambulance_path)
+        max_path=max(self.cached_air_distance_calculator.get_air_distance_between_junctions(item_1,item_2) for item_1 in all_certain_junctions_in_remaining_ambulance_path
+            for item_2 in all_certain_junctions_in_remaining_ambulance_path if item_1.index!=item_2.index)
 
        # return 10  # TODO: modify this line.
         return max_path
