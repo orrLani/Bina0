@@ -223,45 +223,39 @@ class MDAProblem(GraphProblem):
         unvisit_reported_apartments = self.get_reported_apartments_waiting_to_visit(state_to_expand)
      #   unvisit_place = unvisit_lab | unvisit_reported_apartments
 
-        labs =  frozenset(self.problem_input.laboratories)
+
 
         capaitcy = self.problem_input.ambulance.taken_tests_storage_capacity
         for apartment in unvisit_reported_apartments:
-           # this is placee
-            if state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance()+apartment.nr_roommates<capaitcy \
-                    and state_to_expand.nr_matoshim_on_ambulance >= apartment.nr_roommates :
-                succ_state = MDAState(current_site=apartment,
-                            tests_on_ambulance=state_to_expand.tests_on_ambulance  | frozenset([apartment]),
-                            tests_transferred_to_lab= state_to_expand.tests_transferred_to_lab,
-                            visited_labs = state_to_expand.visited_labs,
-                            nr_matoshim_on_ambulance=state_to_expand.nr_matoshim_on_ambulance -apartment.nr_roommates)
-                cost =self.get_operator_cost(state_to_expand,succ_state)
-                name =f'visit {apartment.reporter_name}'
-                yield OperatorResult(succ_state,cost,name)
+             if state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance()+apartment.nr_roommates<=capaitcy \
+                     and state_to_expand.nr_matoshim_on_ambulance >= apartment.nr_roommates :
+                 succ_state = MDAState(current_site=apartment,
+                             tests_on_ambulance=state_to_expand.tests_on_ambulance | frozenset({apartment}),
+                             tests_transferred_to_lab= state_to_expand.tests_transferred_to_lab,
+                             nr_matoshim_on_ambulance = state_to_expand.nr_matoshim_on_ambulance - apartment.nr_roommates,
+                             visited_labs = state_to_expand.visited_labs)
 
+                 cost =self.get_operator_cost(state_to_expand,succ_state)
+                 name =f'visit {apartment.reporter_name}'
+                 yield OperatorResult(succ_state,cost,name)
 
+        labs = frozenset(self.problem_input.laboratories)
         for lab in labs:
-            if state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance()!= 0 or lab.max_nr_matoshim!=0:
-                succ_state = MDAState(current_site=lab,
-                                      tests_on_ambulance={}
-                                      if state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance() != 0 else
-                                      state_to_expand.tests_transferred_to_lab,
-                                      tests_transferred_to_lab={}\
-                                       if state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance()!= 0 else
-                                            state_to_expand.tests_transferred_to_lab,
-                                      visited_labs=state_to_expand.visited_labs | frozenset([lab]),
-                                      nr_matoshim_on_ambulance=\
-                                      state_to_expand.nr_matoshim_on_ambulance
-                                      if lab in state_to_expand.visited_labs else
-                                      state_to_expand.nr_matoshim_on_ambulance+lab.max_nr_matoshim
-                                      )
+             if state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance() \
+                     or not lab in state_to_expand.visited_labs:
+                 succ_state = MDAState(current_site=lab,
+                                       tests_on_ambulance=frozenset(),
+                                       tests_transferred_to_lab=state_to_expand.tests_on_ambulance |
+                                                             state_to_expand.tests_transferred_to_lab,
+                                       nr_matoshim_on_ambulance= \
+                                           state_to_expand.nr_matoshim_on_ambulance
+                                           if lab in state_to_expand.visited_labs else
+                                           state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim,
+                                       visited_labs=state_to_expand.visited_labs | frozenset({lab}))
 
-
-
-                cost = self.get_operator_cost(state_to_expand, succ_state)
-                name = f'visit {lab.name}'
-                yield OperatorResult(succ_state, cost, name)
-
+                 cost = self.get_operator_cost(state_to_expand, succ_state)
+                 name = f'visit {lab.name}'
+                 yield OperatorResult(succ_state, cost, name)
 
 
 
@@ -283,7 +277,7 @@ class MDAProblem(GraphProblem):
 
         if distance_cost is None:
             distance_cost = float("inf")
-        tests_travel_distance_cost = succ_state.get_total_nr_tests_taken_and_stored_on_ambulance()*distance_cost
+        tests_travel_distance_cost = prev_state.get_total_nr_tests_taken_and_stored_on_ambulance()*distance_cost
 
         return MDACost(distance_cost,tests_travel_distance_cost,self.optimization_objective)
 
