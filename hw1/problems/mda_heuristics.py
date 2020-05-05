@@ -145,6 +145,17 @@ class MDAMSTAirDistHeuristic(HeuristicFunction):
               Use `nx.minimum_spanning_tree()` to get an MST. Calculate the MST size using the method
               `.size(weight='weight')`. Do not manually sum the edges' weights.
         """
+        graph_remaining_junctions_in_path = nx.Graph()
+        #graph_remaining_junctions_in_path.add_nodes_from([junction.index for junction in junctions])
+
+        #adding weighted between every 2 different junctions with weight eqauls to distance between them
+        for junction_i in junctions:
+            graph_remaining_junctions_in_path.add_weighted_edges_from(\
+                [(junction_i, junction_j, self.cached_air_distance_calculator.get_air_distance_between_junctions(junction_i,junction_j)) \
+                 for junction_j in junctions \
+                 if junction_i.index != junction_j.index])
+        return nx.minimum_spanning_tree(graph_remaining_junctions_in_path).size(weight='weight')
+
         raise NotImplementedError  # TODO: remove this line!
 
 
