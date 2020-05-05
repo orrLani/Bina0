@@ -217,12 +217,14 @@ def mda_problem_with_astar_experiments():
     a_star = AStar(MDAMaxAirDistHeuristic)
     res = a_star.solve_problem(moderate_mda_problem_with_distance_cost)
     print(res)
-
-    exit()  # TODO: remove!
+    #exit()
 
     # Ex.20
     # TODO: create an instance of `AStar` with the `MDASumAirDistHeuristic`,
     #       solve the `moderate_mda_problem_with_distance_cost` with it and print the results.
+    a_star = AStar(MDASumAirDistHeuristic)
+    res = a_star.solve_problem(moderate_mda_problem_with_distance_cost)
+    print(res)
     exit()  # TODO: remove!
 
     # Ex.23
@@ -322,8 +324,8 @@ def mda_problem_anytime_astar_experiments():
 
 def run_all_experiments():
     print('Running all experiments')
-    #toy_map_problem_experiments()
-    #basic_mda_problem_experiments()
+    toy_map_problem_experiments()
+    basic_mda_problem_experiments()
     mda_problem_with_astar_experiments()
     mda_problem_with_weighted_astar_experiments()
     multiple_objectives_mda_problem_experiments()
