@@ -149,11 +149,29 @@ class MDAMSTAirDistHeuristic(HeuristicFunction):
         #graph_remaining_junctions_in_path.add_nodes_from([junction.index for junction in junctions])
 
         #adding weighted between every 2 different junctions with weight eqauls to distance between them
+
+        # graph_remaining_junctions_in_path.add_weighted_edges_from(
+        #     [(junction_i,junction_j,self.cached_air_distance_calculator.get_air_distance_between_junctions(junction_i,junction_j))
+        #      for junction_i in junctions for junction_j in junctions if junction_i.index!=junction_j.index and
+        #       graph_remaining_junctions_in_path.has_edge(junction_j, junction_i) == False
+        # ])
+
+        # for junction_i in junctions:
+        #     graph_remaining_junctions_in_path.add_weighted_edges_from(\
+        #         [(junction_i, junction_j, self.cached_air_distance_calculator.get_air_distance_between_junctions(junction_i,junction_j)) \
+        #          for junction_j in junctions \
+        #          if junction_i.index != junction_j.index])
+
         for junction_i in junctions:
-            graph_remaining_junctions_in_path.add_weighted_edges_from(\
-                [(junction_i, junction_j, self.cached_air_distance_calculator.get_air_distance_between_junctions(junction_i,junction_j)) \
-                 for junction_j in junctions \
-                 if junction_i.index != junction_j.index])
+            graph_remaining_junctions_in_path.add_weighted_edges_from(
+               [(junction_i, junction_j, self.cached_air_distance_calculator.get_air_distance_between_junctions(junction_i,junction_j)) \
+               for junction_j in junctions
+                 if (junction_i.index != junction_j.index
+                 and graph_remaining_junctions_in_path.has_edge(junction_j, junction_i) == False)])
+
+
+
+
         return nx.minimum_spanning_tree(graph_remaining_junctions_in_path).size(weight='weight')
 
         raise NotImplementedError  # TODO: remove this line!
