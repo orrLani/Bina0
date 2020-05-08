@@ -201,13 +201,37 @@ class MDATestsTravelDistToNearestLabHeuristic(HeuristicFunction):
             Complete the implementation of this method.
             Use `self.problem.get_reported_apartments_waiting_to_visit(state)`.
         """
+
         assert isinstance(self.problem, MDAProblem)
         assert isinstance(state, MDAState)
+
+       # all_certain_junctions_in_remaining_ambulance_path = \
+        #    self.problem.get_all_certain_junctions_in_remaining_ambulance_path(state)
+       # all_certain_junctions_in_remaining_ambulance_path = set(all_certain_junctions_in_remaining_ambulance_path)
 
         def air_dist_to_closest_lab(junction: Junction) -> float:
             """
             Returns the distance between `junction` and the laboratory that is closest to `junction`.
             """
-            return min(...)  # TODO: replace `...` with the relevant implementation.
+            return min([(self.cached_air_distance_calculator.
+                                   get_air_distance_between_junctions(junction,junction_lab))
+                                   for junction_lab in labs_junctions])
 
-        raise NotImplementedError
+        apartments = self.problem.get_reported_apartments_waiting_to_visit(state)
+
+        labs_junctions =[lab.location for lab in list(self.problem.problem_input.laboratories)]
+
+        result =0
+        tests = state.get_total_nr_tests_taken_and_stored_on_ambulance()
+
+        if state.tests_on_ambulance:
+            result+=air_dist_to_closest_lab(state.current_location)*tests
+
+        result+=sum([apperment.nr_roommates*air_dist_to_closest_lab(apperment.location) for
+                   apperment in apartments] )
+
+        return result
+
+
+
+        #raise NotImplementedError
