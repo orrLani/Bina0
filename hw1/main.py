@@ -344,6 +344,10 @@ def mda_problem_anytime_astar_experiments():
 
     moderate_mda_problem_with_distance_cost = get_mda_problem('moderate', MDAOptimizationObjective.Distance)
 
+    anytime_astar = AnytimeAStar(MDAMSTAirDistHeuristic, max_nr_states_to_expand_per_iteration=150)
+    res = anytime_astar.solve_problem(moderate_mda_problem_with_distance_cost)
+    print(res)
+
     # Ex.41
     # TODO: create an instance of `AnytimeAStar` once with the `MDAMSTAirDistHeuristic`, with
     #       `max_nr_states_to_expand_per_iteration` set to 150, solve the
@@ -358,7 +362,7 @@ def run_all_experiments():
    # mda_problem_with_astar_experiments()
    # mda_problem_with_weighted_astar_experiments()
   #  multiple_objectives_mda_problem_experiments()
-    mda_problem_with_astar_epsilon_experiments()
+    #mda_problem_with_astar_epsilon_experiments()
     mda_problem_anytime_astar_experiments()
 
 
