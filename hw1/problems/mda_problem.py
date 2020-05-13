@@ -325,7 +325,7 @@ class MDAProblem(GraphProblem):
         """
 
         return set(self.problem_input.reported_apartments)-\
-               set(state.tests_on_ambulance)-set(state.tests_transferred_to_lab)
+               (state.tests_on_ambulance|set(state.tests_transferred_to_lab))
 
         #raise NotImplementedError  # TODO: remove this line!
 
