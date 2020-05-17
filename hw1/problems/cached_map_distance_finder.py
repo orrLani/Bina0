@@ -60,4 +60,3 @@ class CachedMapDistanceFinder:
         return res.solution_cost
 
 
-      #  raise NotImplementedError  # TODO: remove this line!

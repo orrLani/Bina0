@@ -66,12 +66,6 @@ class AnytimeAStar(GraphProblemSolver):
             #   but there is no solution using `low_heuristic_weight`.
             low_heuristic_weight = 0.5
             high_heuristic_weight = self.initial_high_heuristic_weight_bound
-            #i=1
-
-            #print("solution cost: " + str(best_solution.solution_cost))
-            #print("solution time: " + str(best_solution.solving_time))
-            #print("total expanded: " + str(best_solution.nr_expanded_states))
-            #print("max expanded: " + str(best_solution.max_nr_stored_states))
             while (high_heuristic_weight - low_heuristic_weight) > 0.01:
                 mid_heuristic_weight = (low_heuristic_weight+high_heuristic_weight)/2
                 current_astar = AStar(heuristic_function_type=self.heuristic_function_type, heuristic_weight=mid_heuristic_weight,
@@ -79,42 +73,13 @@ class AnytimeAStar(GraphProblemSolver):
                 current_astar_result = current_astar.solve_problem(problem)
                 total_nr_expanded_states += current_astar_result.nr_expanded_states
                 max_nr_stored_states = max(max_nr_stored_states, current_astar_result.max_nr_stored_states)
-                print(str(i)+".")
                 if current_astar_result.is_solution_found:
-                 #   print("solution found with w = "+str(mid_heuristic_weight))
-                 #   print("solution cost: "+str(current_astar_result.solution_cost))
-                 #   print("solution time: "+str(current_astar_result.solving_time))
-                 #   print("total expanded: "+str(current_astar_result.nr_expanded_states))
-                #    print("max expanded: " + str(current_astar_result.max_nr_stored_states))
-                    #if current_astar_result.solution_cost < best_solution.solution_cost:
-                 #   print("Best Solution so far!")
                     best_solution = current_astar_result
                     best_heuristic_weight = mid_heuristic_weight
                     high_heuristic_weight = mid_heuristic_weight
                 else:
                     low_heuristic_weight = mid_heuristic_weight
-                #    print("solution not with w = " + str(mid_heuristic_weight))
-                #print("====================================================================")
-                #i+=1
-                # TODO [Ex.40]:
-                #  Complete the missing part inside this loop.
-                #  Perform a binary search over the possible values of `heuristic_weight`.
-                #  In each iteration, create an AStar solver with:
-                #   (i)   the `heuristic_weight` set to the mid point of the current low & high binary search bound,
-                #   (ii)  the `max_nr_states_to_expand` set to `self.max_nr_states_to_expand_per_iteration`,
-                #   (iii) the `heuristic_function_type` set to `self.heuristic_function_type`,
-                #   and solve the given problem with it.
-                #  Don't forget to update `total_nr_expanded_states` and `max_nr_stored_states` (see how we've done
-                #   it above).
-                #  Update `low_heuristic_weight` and `high_heuristic_weight` according to the result of the AStar
-                #   in order the keep the invariant (mentioned above) satisfied.
-                #  You might need to use the field `is_solution_found` of the search result obtained from the AStar.
-                #  Update `best_solution` and `best_heuristic_weight` if needed. `best_solution` stores the solution
-                #   (SearchResult object) found with the best g-cost (use `solution_g_cost` field of SearchResult to
-                #   obtain the g-cost of a solution). Update iff the current inspected solution cost < the cost of
-                #   the best found solution so far.
-                #  Make sure to also read the big comment in the head of this class.
-                #raise NotImplementedError   # TODO: remove this line!
+
 
         self.solver_name = f'{self.__class__.solver_name} ' \
                            f'(h={best_solution.solver.heuristic_function.heuristic_name}, ' \
