@@ -5,7 +5,6 @@ from LiveAnimation import LiveAnimation
 from LivePlayer import LivePlayer
 from MapsGenerator import *
 from SimplePlayer import SimplePlayer
-from SimplePlayer2 import SimplePlayer2
 import time
 import sys, os
 # from PyQt4.QtCore import pyqtRemoveInputHook
@@ -113,8 +112,6 @@ def get_player(player_type, module):
         player = LivePlayer()
     elif player_type == 'SimplePlayer':
         player = SimplePlayer()
-    elif player_type == 'SimplePlayer2':
-        player = SimplePlayer2()
     elif player_type == 'MinimaxPlayer':
         player = module.MinimaxPlayer()
     elif player_type == 'AlphaBetaPlayer':

@@ -34,6 +34,7 @@ class LivePlayer:
             elif d == 's':
                 # print('going down')
                 return -1, 0
+
     def update_loc(self, loc):
         self.loc = loc
 

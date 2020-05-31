@@ -17,7 +17,6 @@ class SimplePlayer:
         for d in self.directions:
             i = loc[0] + d[0]
             j = loc[1] + d[1]
-            #comments
             if 0 <= i < len(board) and 0 <= j < len(board[0]) and board[i][j] == 0:  # then move is legal
                 num_steps_available += 1
 
@@ -25,7 +24,6 @@ class SimplePlayer:
             return -1
         else:
             return 4 - num_steps_available
-
 
     def count_ones(self, board):
         counter = 0
@@ -51,22 +49,20 @@ class SimplePlayer:
 
             if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and self.board[i][j] == 0:  # then move is legal
                 new_loc = (i, j)
-
+                # print('prev loc', prev_loc, 'new_loc:', new_loc, 'move:', (i, j))
                 assert self.board[new_loc] == 0
                 self.board[new_loc] = 1
                 assert self.count_ones(self.board) == 1
 
                 score = self.state_score(board=self.board, loc=(i, j))
-                print('prev loc', prev_loc, 'new_loc:', new_loc, 'move:', (i, j), 'score:', score)
                 if score > best_move_score:
                     best_move, best_move_score, best_new_loc = d, score, new_loc
-                    print('move:', d,'with score', score, 'is better than', best_move, 'with score', best_move_score)
                 self.board[new_loc] = 0
                 assert self.count_ones(self.board) == 0
 
 
         if best_move is None:
-            print(self.board)
+            # print(self.board)
             exit()
 
         self.board[best_new_loc] = 1
@@ -74,7 +70,7 @@ class SimplePlayer:
         assert self.count_ones(self.board) == 1
 
         self.loc = best_new_loc
-        print('returning move', best_move)
+        # print('returning move', best_move)
         return best_move
 
     def set_rival_move(self, loc):
