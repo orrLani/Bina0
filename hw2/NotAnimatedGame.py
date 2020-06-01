@@ -18,7 +18,9 @@ class NotAnimatedGame:
         assert hasattr(player_1, 'set_rival_move')
         assert hasattr(player_2, 'set_rival_move')
         self.print_game_in_terminal = print_game_in_terminal
-        self.time_to_make_a_move = time_to_make_a_move
+        #TODO delete
+        self.time_to_make_a_move = 2
+       # self.time_to_make_a_move = time_to_make_a_move
         self.game = Game(size, block_locations, starts, moves)
         self.player_1 = player_1
         self.player_2 = player_2
@@ -74,7 +76,8 @@ class NotAnimatedGame:
                 end = time.time()
                 diff = end - start
                 #TODO DELETE FALSE IS FOR DENUGGER
-                if diff > self.time_to_make_a_move and False:
+              #  if diff > self.time_to_make_a_move and False:
+                if diff > self.time_to_make_a_move:
                     print()
                     print('####################')
                     print('####################')
@@ -111,9 +114,11 @@ class NotAnimatedGame:
     def print_board_to_terminal(self, board):
         board_to_print = np.flipud(board.copy())
         # print(board_to_print)
+        import colorama
+        from colorama import Fore, Style
         print('_' * len(board_to_print[0]) * 4)
         for row in board_to_print:
-            row = [str(int(x)) if x != -1 else 'X' for x in row]
+            row = [str(int(x)) if x != -1 else Fore.LIGHTBLUE_EX + 'X'+Style.RESET_ALL for x in row]
             print(' | '.join(row))
             print('_' * len(row) * 4)
 
