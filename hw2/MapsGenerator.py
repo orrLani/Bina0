@@ -160,4 +160,11 @@ size, blocks, _ = get_board_data(board)
 starts = [(4, 1), (4, 4)]
 small_map = [size, blocks, starts]
 
-maps = [small_map, diag_map, tunnels_map, trick_map, ai_map]
+# maps = [small_map, diag_map, tunnels_map, trick_map, ai_map]
+
+board = build_board((11,11),[],[])
+board=reflect(board,'horizontal')
+starts=[(10,0),(0,10)]
+blocks= [(0,5),(1,5),(2,5),(3,5),(4,5),(6,5),(7,5),(8,5),(9,5),(10,5)]
+big_map_orr = [(11,11),blocks,starts]
+maps = [small_map, diag_map, tunnels_map, trick_map, ai_map, big_map_orr]

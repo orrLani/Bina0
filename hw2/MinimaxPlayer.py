@@ -72,35 +72,37 @@ class MinimaxPlayer:
                 if val == 0:
                     self.num_free_slots_init += 1
 
+    def RB_MiniMax(self,state: State, depth: int):
+        if state.is_final_state():
+            score = final_H(state)
+            return score
+        if depth == 0:
+            self.leaves += 1
+            return self.heuristic(state)
+        agent_to_move = state.turn()
+        if agent_to_move == 1:
+            # my turn
+            curMax = -math.inf
+            for successor in self.successors(state):
+                score = self.RB_MiniMax(successor, depth - 1)
+                curMax = max(score, curMax)
+            return curMax
+        else:
+            curMin = math.inf
+            # deciding_agent=state.switch_turns()
+            for successor in self.successors(state):
+                score = self.RB_MiniMax(successor, depth - 1)
+                curMin = min(score, curMin)
+            return curMin
+
     def choose_move(self,state:State,depth:int)->tuple:
 
-        def RB_MiniMax(state: State, depth: int):
-            if state.is_final_state():
-                score = final_H(state)
-                return score
-            if depth == 0:
-                self.leaves += 1
-                return self.heuristic(state)
-            agent_to_move = state.turn()
-            if agent_to_move == 1:
-                # my turn
-                curMax = -math.inf
-                for successor in self.successors(state):
-                    score = RB_MiniMax(successor, depth - 1)
-                    curMax = max(score, curMax)
-                return curMax
-            else:
-                curMin = math.inf
-                # deciding_agent=state.switch_turns()
-                for successor in self.successors(state):
-                    score = RB_MiniMax(successor, depth - 1)
-                    curMin = min(score, curMin)
-                return curMin
+
 
         curMax = -math.inf
         best_move = None
         for successor in self.successors(state):
-            score = RB_MiniMax(successor,depth)
+            score = self.RB_MiniMax(successor,depth)
             if score >= curMax:
                 curMax = score
                 best_move = successor.directionToState()
@@ -117,7 +119,9 @@ class MinimaxPlayer:
         #next_iteration_time_max = last_iteration_time*4
         next_iteration_time_max =calculate_blocked_time(last_iteration_time)
         time_until_now=t.time()-id_time_start
-        while time_until_now+next_iteration_time_max<time:
+       # DEBUG = self.loc==(0,3)
+        DEBUG= self.loc==(0,1)
+        while time_until_now+next_iteration_time_max<time or (DEBUG and depth<50):
             depth+=1
             iteartion_start_time =t.time()
             best_move=self.choose_move(initial_state,depth)
@@ -136,7 +140,8 @@ class MinimaxPlayer:
         self.board[self.loc] = 1
       #  print("Our board after")
       #  print(self.board)
-        return best_move
+       # return best_move for wet
+        return depth # for print grath to dry
 
     def set_rival_move(self,loc):
         #old rival location
