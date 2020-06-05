@@ -14,12 +14,15 @@ def tup_split(tup):
 class State:
     def __init__(self,  board : Board, player_loc:tuple,
                  rival_loc:tuple, player_turn:int,
-                 prev_direction= None):
+                 num_captured_slots,num_free_slots,prev_direction= None):
         self.board:Board = board
         self.self_loc:tuple = player_loc
         self.rival_loc:tuple = rival_loc
         self.player_turn:int = player_turn
         self.direction_to_state:tuple = prev_direction
+        # for heuristics
+        self.num_captured_slots = num_captured_slots
+        self.num_free_slots_init = num_free_slots
 
     def turn(self):
         return self.player_turn

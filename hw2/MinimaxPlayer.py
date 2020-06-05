@@ -6,8 +6,8 @@ directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 def tup_add(t1, t2):
     return (t1[0]+t2[0],t1[1]+t2[1])
 
-def calculate_max_time(lefts:int,time:t):
-    return 3*time
+def calculate_blocked_time(time:t)->t:
+    return 4*time
 
 def tup_split(tup):
     return tup[0],tup[1]
@@ -20,7 +20,11 @@ class MinimaxPlayer:
         self.loc:tuple =None
         self.rival_loc:tuple = None
         self.leaves=0
-        self.heuristic=defencive_H
+       # self.heuristic=defencive_H
+        self.heuristic= attack_defencive_H
+        # for heuristics
+        self.num_free_slots_init = 0
+
 
     def successors(self,state: State) -> list:
         """
@@ -50,7 +54,9 @@ class MinimaxPlayer:
                     next_self_loc, next_rival_loc = next_location, state.rival_loc
                 else:
                     next_self_loc, next_rival_loc = state.self_loc, next_location
-                succesors.append(State(next_board, next_self_loc,next_rival_loc,3-state.player_turn, direction))
+                succesors.append(State(next_board, next_self_loc,next_rival_loc,3-state.player_turn
+                                       ,num_captured_slots=state.num_captured_slots+1,
+                                       num_free_slots=state.num_free_slots_init,prev_direction=direction))
         return succesors
 
 
@@ -62,8 +68,12 @@ class MinimaxPlayer:
                     self.loc = (i, j)
                 if val == 2:
                     self.rival_loc = (i, j)
+                # for calculate heuristics
+                if val == 0:
+                    self.num_free_slots_init += 1
 
     def choose_move(self,state:State,depth:int)->tuple:
+
         def RB_MiniMax(state: State, depth: int):
             if state.is_final_state():
                 score = final_H(state)
@@ -100,17 +110,19 @@ class MinimaxPlayer:
     def make_move(self,time):
         id_time_start = t.time()
         depth=1
-        initial_state = State(self.board.copy(), self.loc, self.rival_loc, 1)
+        initial_state = State(self.board.copy(), self.loc, self.rival_loc, 1,num_captured_slots=1,
+                              num_free_slots=self.num_free_slots_init)
         best_move=self.choose_move(initial_state,depth)
         last_iteration_time = t.time() - id_time_start
-        next_iteration_time_max = last_iteration_time*3
+        #next_iteration_time_max = last_iteration_time*4
+        next_iteration_time_max =calculate_blocked_time(last_iteration_time)
         time_until_now=t.time()-id_time_start
         while time_until_now+next_iteration_time_max<time:
             depth+=1
             iteartion_start_time =t.time()
             best_move=self.choose_move(initial_state,depth)
             last_iteration_time=t.time()-iteartion_start_time
-            next_iteration_time_max = last_iteration_time * 3
+            next_iteration_time_max =calculate_blocked_time(last_iteration_time)
             time_until_now=t.time()-id_time_start
         if best_move is None:
             #print("My Board is NOTGOOD")
