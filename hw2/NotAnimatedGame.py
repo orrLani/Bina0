@@ -77,15 +77,15 @@ class NotAnimatedGame:
                 diff = end - start
                 #TODO DELETE FALSE IS FOR DENUGGER
               #  if diff > self.time_to_make_a_move and False:
-                if diff > self.time_to_make_a_move:
-                    print()
-                    print('####################')
-                    print('####################')
-                    print(" Time Up For Player", player_index + 1)
-                    print("    Player", 1 - player_index + 1, "Won!")
-                    print('####################')
-                    print('####################')
-                    exit()
+              #   if diff > self.time_to_make_a_move:
+              #       print()
+              #       print('####################')
+              #       print('####################')
+              #       print(" Time Up For Player", player_index + 1)
+              #       print("    Player", 1 - player_index + 1, "Won!")
+              #       print('####################')
+              #       print('####################')
+              #       exit()
             prev_loc = self.game.board.get_player_location(player_index + 1)
             # print('player is at loc', prev_loc)
             loc = (prev_loc[0] + move[0], prev_loc[1] + move[1])

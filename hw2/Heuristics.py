@@ -1,5 +1,6 @@
 import math
 from GameAnalyzer import State
+from Board import Board
 directions = [(1,0),(-1,0),(0,1),(0,-1)]
 import Board
 
@@ -124,6 +125,48 @@ def attack_defencive_H(state:State):
     #return (ratio_available_steps*(count_moves(state.self_loc) + (0*distance))+
     #        ((1-ratio_available_steps)*+(0*distance))))
 
+def most_longest_path_H_heavy(state:State):
+    def getAllNextLocs(board: Board, loc):
+        """
+        returns a list of all possible next locations on board given a location
+        """
+        next_locs = []
+        for d in directions:
+            possible_loc = tup_add(loc,d)
+            if board[possible_loc]==0:
+                next_locs.append(possible_loc)
+        return next_locs
+    def simulateMove(board, loc, next_loc):
+        """
+        simulate movement of player in location =loc to next location
+        """
+        board[next_loc]=board[loc]
+        board[loc]=-1
+        pass
+    def restoreMove(board, loc , from_loc):
+        """
+        restores board from moving to location = from_loc
+        """
+        board[loc]=board[from_loc]
+        board[from_loc]=0
+        pass
+    def count_longest_path(board: Board, loc, depth=5):
+        """
+        returns longest path available for a player in location = loc
+        """
+        next_locs = getAllNextLocs(board,loc)
+        if not next_locs or depth<1:
+            return 0
+        longest_path_size=0
+        for next_loc in next_locs:
+            simulateMove(board, loc, next_loc)
+            curr_path_size = count_longest_path(board,next_loc, depth-1)
+            if curr_path_size>=longest_path_size:
+                longest_path_size=curr_path_size
+            restoreMove(board,loc,next_loc)
+        return 1+longest_path_size
+    temp_board = state.board
+    count_longest_path(temp_board, state.loc, 5)
 
 
 
