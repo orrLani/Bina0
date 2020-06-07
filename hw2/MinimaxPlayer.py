@@ -23,7 +23,9 @@ class MinimaxPlayer:
        # self.heuristic=defencive_H
         self.heuristic= attack_defencive_H
         # for heuristics
+
         self.num_free_slots_init = 0
+        self.num_captured_slots = 0
 
 
     def successors(self,state: State) -> list:
@@ -55,7 +57,7 @@ class MinimaxPlayer:
                 else:
                     next_self_loc, next_rival_loc = state.self_loc, next_location
                 succesors.append(State(next_board, next_self_loc,next_rival_loc,3-state.player_turn
-                                       ,num_captured_slots=state.num_captured_slots+1,
+                                       ,num_captured_slots= self.num_captured_slots+1,
                                        num_free_slots=state.num_free_slots_init,prev_direction=direction))
         return succesors
 
@@ -97,8 +99,6 @@ class MinimaxPlayer:
 
     def choose_move(self,state:State,depth:int)->tuple:
 
-
-
         curMax = -math.inf
         best_move = None
         for successor in self.successors(state):
@@ -112,6 +112,7 @@ class MinimaxPlayer:
     def make_move(self,time):
         id_time_start = t.time()
         depth=1
+        self.num_captured_slots += 1
         initial_state = State(self.board.copy(), self.loc, self.rival_loc, 1,num_captured_slots=1,
                               num_free_slots=self.num_free_slots_init)
         best_move=self.choose_move(initial_state,depth)
@@ -119,8 +120,9 @@ class MinimaxPlayer:
         #next_iteration_time_max = last_iteration_time*4
         next_iteration_time_max =calculate_blocked_time(last_iteration_time)
         time_until_now=t.time()-id_time_start
-       # DEBUG = self.loc==(0,3)
-        DEBUG= self.loc==(0,1)
+        #DEBUG = self.loc==(0,3)
+        #DEBUG= self.loc==(1,7)
+        DEBUG= False
         while time_until_now+next_iteration_time_max<time or (DEBUG and depth<50):
             depth+=1
             iteartion_start_time =t.time()
@@ -140,11 +142,12 @@ class MinimaxPlayer:
         self.board[self.loc] = 1
       #  print("Our board after")
       #  print(self.board)
-       # return best_move for wet
-        return depth # for print grath to dry
+        return best_move #for wet
+       # return depth # for print grath to dry
 
     def set_rival_move(self,loc):
         #old rival location
+        self.num_captured_slots += 1
         self.board[self.rival_loc] = -1
         self.rival_loc = loc
         #new rival location

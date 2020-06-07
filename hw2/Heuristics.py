@@ -1,6 +1,7 @@
 import math
 from GameAnalyzer import State
 directions = [(1,0),(-1,0),(0,1),(0,-1)]
+import Board
 
 def tup_add(t1, t2):
     return (t1[0]+t2[0],t1[1]+t2[1])
@@ -55,9 +56,30 @@ def goToEnemy_H(state: State):
     return defencive_H(state)+dist(state.self_loc,state.rival_loc)
 
 
+
+
 def attack_defencive_H(state:State):
     distance = dist(state.self_loc,state.rival_loc)
     ratio_available_steps = state.num_captured_slots/state.num_free_slots_init
+
+    def bfs_run(loc,board:Board,agent):
+        #copy from orian need to change
+        queue = []
+        queue.append(loc)
+        index = 0
+        while index < len(queue):
+            head_loc = queue[index]
+            index += 1
+            for d in directions:
+                i, j = head_loc[0] + d[0], head_loc[1] + d[1]
+                if 0 <= i < len(state.board) and 0 <= j < len(state.board[0]) and state.board[i][j] == 0 and (i,j) not in queue:
+                    queue.append((i, j))
+                  #  if agent==1:
+                  #      board[i][j]=1
+
+
+        return index
+
     def count_moves(loc):
         num_steps_available = 0
         for d in directions:
@@ -67,9 +89,40 @@ def attack_defencive_H(state:State):
                 num_steps_available += 1
         return num_steps_available
 
+
+    board = state.board.copy()
     distance =dist(state.rival_loc,state.self_loc)
-    return (ratio_available_steps*(count_moves(state.self_loc) + (0*distance))-
-            ((1-ratio_available_steps)*(count_moves(state.rival_loc)+(0*distance))))
+    if ratio_available_steps<0.3:
+        agent = bfs_run(state.self_loc,board,1)
+        opponent =bfs_run(state.rival_loc,board,1)
+        return agent-(opponent*2)
+    else:
+        agent = count_moves(state.self_loc)
+        opponent = count_moves(state.rival_loc)
+        return agent-(opponent*2)
+
+#    if ratio_available_steps<0.1:
+#        return agent-(opponent*5)
+#    elif ratio_available_steps<0.2:
+#            return agent-(opponent*4)
+#    elif ratio_available_steps<0.3:
+#            return agent-(opponent*3)
+#    elif ratio_available_steps<0.4:
+#            return agent-(opponent*2)
+#    elif ratio_available_steps<0.5:
+#            return agent-opponent
+#   elif ratio_available_steps<0.6:
+#            return opponent -(2*agent)
+#    elif ratio_available_steps<0.7:
+#            return opponent -(3*agent)
+#    elif ratio_available_steps<0.8:
+#            return opponent -(4*agent)
+#    elif ratio_available_steps<0.9:
+#            return opponent -(5*agent)
+
+    #return opponent -(6*agent)
+    #return (ratio_available_steps*(count_moves(state.self_loc) + (0*distance))+
+    #        ((1-ratio_available_steps)*+(0*distance))))
 
 
 
