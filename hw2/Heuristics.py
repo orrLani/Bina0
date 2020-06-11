@@ -61,9 +61,16 @@ def goToEnemy_H(state: State):
 
 def attack_defencive_H(state:State):
     distance = dist(state.self_loc,state.rival_loc)
-    ratio_available_steps = state.num_captured_slots/state.num_free_slots_init
+    ratio_available_steps = (state.num_free_slots_init-state.num_captured_slots)/state.num_free_slots_init
 
-    def bfs_run(loc,board:Board,agent):
+    def dfs_run(loc,board:Board,agent):
+        """
+        this function get a board and
+        :param loc:
+        :param board:
+        :param agent:
+        :return:
+        """
         #copy from orian need to change
         queue = []
         queue.append(loc)
@@ -94,8 +101,8 @@ def attack_defencive_H(state:State):
     board = state.board.copy()
     distance =dist(state.rival_loc,state.self_loc)
     if ratio_available_steps<0.3:
-        agent = bfs_run(state.self_loc,board,1)
-        opponent =bfs_run(state.rival_loc,board,1)
+        agent = dfs_run(state.self_loc,board,1)
+        opponent =dfs_run(state.rival_loc,board,1)
         return agent-(opponent*2)
     else:
         agent = count_moves(state.self_loc)

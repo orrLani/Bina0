@@ -12,7 +12,6 @@ class OrderedAlphaBetaPlayer(AlphaBetaPlayer):
     def choose_move(self,state:State,depth:int) ->tuple:
         def sorted_list():
             sorted(self.sorted_succesors, key=lambda value: value[1], reverse=True)
-
             return [value[0] for  value in self.sorted_succesors]
         curMax = -math.inf
         alpha = -math.inf
@@ -25,7 +24,6 @@ class OrderedAlphaBetaPlayer(AlphaBetaPlayer):
                self.sorted_succesors.append([successor,0])
         new_sorted_list=[]
         for successor in sorted_list(): #self.succesors
-
             score = self.AB_RB_MiniMax(successor,depth-1,alpha,beta)
             # best_move = successor.directionToState()
             new_sorted_list.append([successor,score])
