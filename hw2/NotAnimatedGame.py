@@ -19,7 +19,7 @@ class NotAnimatedGame:
         assert hasattr(player_2, 'set_rival_move')
         self.print_game_in_terminal = print_game_in_terminal
         #TODO delete
-        self.time_to_make_a_move = 1
+        self.time_to_make_a_move = 2
        # self.time_to_make_a_move = time_to_make_a_move
         self.game = Game(size, block_locations, starts, moves)
         self.player_1 = player_1
@@ -77,7 +77,7 @@ class NotAnimatedGame:
                 diff = end - start
                 #TODO DELETE FALSE IS FOR DENUGGER
               #  if diff > self.time_to_make_a_move and False:
-                if diff > self.time_to_make_a_move and False:
+                if diff > self.time_to_make_a_move:
                     print()
                     print('####################')
                     print('####################')

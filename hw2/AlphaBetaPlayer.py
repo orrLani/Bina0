@@ -52,5 +52,8 @@ class AlphaBetaPlayer(MinimaxPlayer):
             if score >= curMax:
                 curMax = score
                 best_move = successor.directionToState()
+
+            """if depth < 30:
+                print(successor.directionToState(), score, depth)"""
             alpha = max(curMax, alpha)
         return best_move

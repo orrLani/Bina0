@@ -30,6 +30,8 @@ class State:
     def directionToState(self):
         return self.direction_to_state
 
+
+
     def is_final_state(self) ->bool:
         """
         check if is a final state
@@ -42,6 +44,8 @@ class State:
         in_board_next_locations = [loc for loc in all_next_locations if
                                    0 <= loc[0] < len(self.board) and 0 <= loc[1] < len(self.board[1])]
         possible_rival_next_locations = [loc for loc in in_board_next_locations if self.board[loc] == 0]
-        if len(possible_next_locations) == 0 or len(possible_rival_next_locations) == 0:
+        if (len(possible_next_locations) == 0 and len(possible_rival_next_locations) == 0) or \
+                (len(possible_next_locations) == 0 and self.player_turn == 1) or \
+                (len(possible_rival_next_locations) == 0 and self.player_turn == 2) :
             return True
         return False

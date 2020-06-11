@@ -122,7 +122,7 @@ class MinimaxPlayer:
         time_until_now=t.time()-id_time_start
         #DEBUG = self.loc==(0,3)
         #DEBUG= self.loc==(1,7)
-        DEBUG= False
+        DEBUG =False
         while time_until_now+next_iteration_time_max<time or (DEBUG and depth<50):
             depth+=1
             iteartion_start_time =t.time()

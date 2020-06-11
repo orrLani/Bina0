@@ -26,9 +26,9 @@ def final_H(state: State):
     if len(possible_next_locations) == 0 and len(possible_rival_next_locations) == 0:
         return 0
     if len(possible_next_locations) == 0:
-        return -math.inf
+            return -math.inf
     if len(possible_rival_next_locations) == 0:
-        return math.inf
+            return math.inf
     return 0
 
 
@@ -62,7 +62,6 @@ def goToEnemy_H(state: State):
 def attack_defencive_H(state:State):
     distance = dist(state.self_loc,state.rival_loc)
     ratio_available_steps = (state.num_free_slots_init-state.num_captured_slots)/state.num_free_slots_init
-
     def dfs_run(loc,board:Board,agent):
         """
         this function get a board and
@@ -71,7 +70,7 @@ def attack_defencive_H(state:State):
         :param agent:
         :return:
         """
-        #copy from orian need to change
+
         queue = []
         queue.append(loc)
         index = 0
@@ -98,16 +97,29 @@ def attack_defencive_H(state:State):
         return num_steps_available
 
 
+    #board = state.board.copy()
+    #agent = dfs_run(state.self_loc, board, 1)
+    #board = state.board.copy()
+    #opponent = dfs_run(state.rival_loc, board, 1)
+    #return agent - (opponent)
+    #distance =dist(state.rival_loc,state.self_loc)
+    #board = state.board.copy()
+    #agent = dfs_run(state.self_loc, board, 1)
+    #board = state.board.copy()
+    #opponent = dfs_run(state.rival_loc, board, 1)
+    #return agent - (opponent)
+
+
     board = state.board.copy()
-    distance =dist(state.rival_loc,state.self_loc)
-    if ratio_available_steps<0.3:
+    if ratio_available_steps>0.3:
         agent = dfs_run(state.self_loc,board,1)
+        board = state.board.copy()
         opponent =dfs_run(state.rival_loc,board,1)
-        return agent-(opponent*2)
+        return agent-(opponent)
     else:
         agent = count_moves(state.self_loc)
         opponent = count_moves(state.rival_loc)
-        return agent-(opponent*2)
+        return agent-(opponent)
 
 #    if ratio_available_steps<0.1:
 #        return agent-(opponent*5)
@@ -184,6 +196,8 @@ def most_longest_path_H_heavy(state:State):
     #     board[loc]=board[from_loc]
     #     board[from_loc]=0
     #     pass
+    flag =1
+
     def count_longest_path(board: Board, loc):
         """
         returns longest path available for a player in location = loc
@@ -211,7 +225,9 @@ def most_longest_path_H_heavy(state:State):
         # return 1+longest_path_size
 
     temp_board = state.board.copy()
-    result = count_longest_path(temp_board, state.self_loc) - count_longest_path(temp_board,state.rival_loc)
+    my_longest = count_longest_path(temp_board, state.self_loc)
+    his_longest = count_longest_path(temp_board,state.rival_loc)
+    result = my_longest-his_longest
     return result
 
 def most_longest_path_H_heavy2(state:State):
@@ -265,15 +281,15 @@ def most_longest_path_H_heavy2(state:State):
     #     board[loc]=board[from_loc]
     #     board[from_loc]=0
     #     pass
-    def count_longest_path(board: Board, loc,depth):
+    def count_longest_path(board: Board, loc):
         """
         returns longest path available for a player in location = loc
         """
         next_locs = getAllNextLocsPlusBoards(board,loc)
-        if not next_locs or depth ==0 :
+        if not next_locs :
             return 0
 
-        # longest_path_size=0
+        longest_path_size=0
         # for next_loc in next_locs:
         #     #saved = board[next_loc]
         #     board[next_loc[0]][next_loc[1]] = 1
@@ -286,14 +302,14 @@ def most_longest_path_H_heavy2(state:State):
             next_loc, next_board = tup_split(tup)
             #saved = board[next_loc]
             next_board[next_loc[0]][next_loc[1]] = 1
-            curr_path_size = count_longest_path(next_board,next_loc, depth-1)
+            curr_path_size = count_longest_path(next_board,next_loc)
             next_board[next_loc[0]][next_loc[1]] = 0
             if curr_path_size>=longest_path_size:
                 longest_path_size=curr_path_size
         return 1+longest_path_size
 
     temp_board = state.board.copy()
-    result = count_longest_path(temp_board, state.self_loc,2) - count_longest_path(temp_board,state.rival_loc,20)
+    result = count_longest_path(temp_board, state.self_loc) - count_longest_path(temp_board,state.rival_loc)
     return result
 
 
