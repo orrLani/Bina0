@@ -117,11 +117,8 @@ class MinimaxPlayer:
                               num_free_slots=self.num_free_slots_init)
         best_move=self.choose_move(initial_state,depth)
         last_iteration_time = t.time() - id_time_start
-        #next_iteration_time_max = last_iteration_time*4
         next_iteration_time_max =calculate_blocked_time(last_iteration_time)
         time_until_now=t.time()-id_time_start
-        #DEBUG = self.loc==(0,3)
-        #DEBUG= self.loc==(1,7)
         DEBUG =False
         while time_until_now+next_iteration_time_max<time or (DEBUG and depth<50):
             depth+=1
@@ -131,24 +128,17 @@ class MinimaxPlayer:
             next_iteration_time_max =calculate_blocked_time(last_iteration_time)
             time_until_now=t.time()-id_time_start
         if best_move is None:
-            #print("My Board is NOTGOOD")
-            #print(self.board)
-
             exit()
 
         self.board[self.loc] = -1
         #print("the best move is" + str(best_move))
         self.loc = tup_add(best_move,self.loc)
         self.board[self.loc] = 1
-      #  print("Our board after")
-      #  print(self.board)
         return best_move #for wet
-       # return depth # for print grath to dry
+        #return depth # for print grath to dry
 
     def set_rival_move(self,loc):
-        #old rival location
         self.num_captured_slots += 1
         self.board[self.rival_loc] = -1
         self.rival_loc = loc
-        #new rival location
         self.board[self.rival_loc] = 2

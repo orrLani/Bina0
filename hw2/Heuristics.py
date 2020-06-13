@@ -62,29 +62,30 @@ def goToEnemy_H(state: State):
 def attack_defencive_H(state:State):
     distance = dist(state.self_loc,state.rival_loc)
     ratio_available_steps = (state.num_free_slots_init-state.num_captured_slots)/state.num_free_slots_init
-    def dfs_run(loc,board:Board,agent):
+    def vacancies_slots(loc, board:Board, search_space):
         """
-        this function get a board and
+        this function get a board and search_space and return the num of free slots on the search space
+        like bfs until  until deepness of depth
         :param loc:
         :param board:
         :param agent:
         :return:
         """
-
-        queue = []
-        queue.append(loc)
+        if search_space==0:
+            search_space=1
         index = 0
-        while index < len(queue):
-            head_loc = queue[index]
+        d=0
+        list = []
+        list.append(loc)
+        while index < len(list) and d<search_space:
+            head_loc = list[index] # get the first organ
             index += 1
-            for d in directions:
-                i, j = head_loc[0] + d[0], head_loc[1] + d[1]
-                if 0 <= i < len(state.board) and 0 <= j < len(state.board[0]) and state.board[i][j] == 0 and (i,j) not in queue:
-                    queue.append((i, j))
-                  #  if agent==1:
-                  #      board[i][j]=1
-
-
+            for direction in directions:
+                i, j = head_loc[0] + direction[0], head_loc[1] + direction[1]
+                if (i,j) not in list and 0 <= i < len(board) and \
+                        0 <= j < len(board[0]) and state.board[i][j] == 0:
+                    list.append((i, j))
+                d+=1
         return index
 
     def count_moves(loc):
@@ -95,54 +96,18 @@ def attack_defencive_H(state:State):
             if 0 <= i < len(state.board) and 0 <= j < len(state.board[0]) and state.board[i][j] == 0:  # then move is legal
                 num_steps_available += 1
         return num_steps_available
+    ratio_available_steps = (state.num_free_slots_init-state.num_captured_slots)/state.num_free_slots_init
+    size = state.board.size
+    search_space= (size)*ratio_available_steps
+    agent = vacancies_slots(state.self_loc, state.board, search_space)
+    opponent = vacancies_slots(state.rival_loc, state.board, search_space)
 
-
-    #board = state.board.copy()
-    #agent = dfs_run(state.self_loc, board, 1)
-    #board = state.board.copy()
-    #opponent = dfs_run(state.rival_loc, board, 1)
-    #return agent - (opponent)
-    #distance =dist(state.rival_loc,state.self_loc)
-    #board = state.board.copy()
-    #agent = dfs_run(state.self_loc, board, 1)
-    #board = state.board.copy()
-    #opponent = dfs_run(state.rival_loc, board, 1)
-    #return agent - (opponent)
-
-
-    board = state.board.copy()
-    if ratio_available_steps>0.3:
-        agent = dfs_run(state.self_loc,board,1)
-        board = state.board.copy()
-        opponent =dfs_run(state.rival_loc,board,1)
-        return agent-(opponent)
+    if ratio_available_steps>0.5:
+        return agent-((1+ratio_available_steps)*opponent)
     else:
-        agent = count_moves(state.self_loc)
-        opponent = count_moves(state.rival_loc)
-        return agent-(opponent)
+        return ((2-ratio_available_steps)*agent) -opponent
 
-#    if ratio_available_steps<0.1:
-#        return agent-(opponent*5)
-#    elif ratio_available_steps<0.2:
-#            return agent-(opponent*4)
-#    elif ratio_available_steps<0.3:
-#            return agent-(opponent*3)
-#    elif ratio_available_steps<0.4:
-#            return agent-(opponent*2)
-#    elif ratio_available_steps<0.5:
-#            return agent-opponent
-#   elif ratio_available_steps<0.6:
-#            return opponent -(2*agent)
-#    elif ratio_available_steps<0.7:
-#            return opponent -(3*agent)
-#    elif ratio_available_steps<0.8:
-#            return opponent -(4*agent)
-#    elif ratio_available_steps<0.9:
-#            return opponent -(5*agent)
 
-    #return opponent -(6*agent)
-    #return (ratio_available_steps*(count_moves(state.self_loc) + (0*distance))+
-    #        ((1-ratio_available_steps)*+(0*distance))))
 
 
 def most_longest_path_H_heavy(state:State):

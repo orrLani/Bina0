@@ -40,7 +40,9 @@ class NotAnimatedGame:
         return len(possible_next_locations) == 0
 
     def run_game(self):
+        steps =0
         while True:
+            steps+=1
             if self.t == 0 and self.print_game_in_terminal:
                 print('\nInitial board:')
                 board = self.game.board.get_map_for_player_i(1)
@@ -57,6 +59,8 @@ class NotAnimatedGame:
                     sys.stdout = open(os.devnull, 'w')
                     exit()
                 else:
+                    print('@@@@@@@@@@@@@@@@@@@@@@@@@')
+                    print(steps)
                     print('####################')
                     print('####################')
                     print("    Player", (1 - player_index) + 1, "Won!")
@@ -140,6 +144,8 @@ def get_player(player_type, module):
         player = module.LiteAlphaBetaPlayer()
     elif player_type == 'ContestPlayer':
         player = module.ContestPlayer()
+    elif player_type == 'OrderedAlphaBetaPlayerOrian':
+        player = module.OrderedAlphaBetaPlayer()
     else:
         print('bad input')
         exit(-1)

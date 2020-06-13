@@ -21,11 +21,10 @@ class OrderedAlphaBetaPlayer(AlphaBetaPlayer):
            self.sorted_succesors=[]
            for successor in self.successors(state):
                best_move = successor.directionToState()
-               self.sorted_succesors.append([successor,0])
+               self.sorted_succesors.append([successor,0]) # give 0 huristic in the death 1
         new_sorted_list=[]
         for successor in sorted_list(): #self.succesors
             score = self.AB_RB_MiniMax(successor,depth-1,alpha,beta)
-            # best_move = successor.directionToState()
             new_sorted_list.append([successor,score])
             if score >= curMax:
                 curMax = score
@@ -33,9 +32,3 @@ class OrderedAlphaBetaPlayer(AlphaBetaPlayer):
             alpha = max(curMax, alpha)
         self.sorted_succesors=new_sorted_list
         return best_move
-
-
-   # def successors(self,state:State):
-   #     list_of_successors=super().successors(state)
-   #     list_of_successors.sort(key=lambda state:self.AB_RB_MiniMax(state, depth - 1, alpha, beta))
-   #    ord

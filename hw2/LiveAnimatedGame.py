@@ -124,6 +124,8 @@ def get_player(player_type, module):
         player = module.LiteAlphaBetaPlayer()
     elif player_type == 'ContestPlayer':
         player = module.ContestPlayer()
+    elif player_type == 'OrderedAlphaBetaPlayerOrian':
+        player = module.OrderedAlphaBetaPlayer()
     else:
         print('bad input')
         exit(-1)

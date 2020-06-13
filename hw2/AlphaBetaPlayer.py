@@ -4,7 +4,6 @@ class AlphaBetaPlayer(MinimaxPlayer):
     def __init__(self):
         super().__init__()
         self.heuristic = attack_defencive_H
-        # self.sorted_succesrors = None
 
 
     def AB_RB_MiniMax(self,state: State, depth: int, alpha: float, beta: float):
@@ -41,19 +40,11 @@ class AlphaBetaPlayer(MinimaxPlayer):
         alpha = -math.inf
         beta = math.inf
         best_move = None
-        """
-        if depth==1
-            init self.succesors
-        sort(self.successors) from big to small
-        """
         for successor in self.successors(state): #self.succesors
             score = self.AB_RB_MiniMax(successor,depth,alpha,beta)
-            # self.succesros_sorted.append(state, score)
             if score >= curMax:
                 curMax = score
                 best_move = successor.directionToState()
 
-            """if depth < 30:
-                print(successor.directionToState(), score, depth)"""
             alpha = max(curMax, alpha)
         return best_move
