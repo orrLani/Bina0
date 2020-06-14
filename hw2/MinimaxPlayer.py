@@ -21,7 +21,7 @@ class MinimaxPlayer:
         self.rival_loc:tuple = None
         self.leaves=0
        # self.heuristic=defencive_H
-        self.heuristic= attack_defencive_H
+        self.heuristic= offensive_To_Defensive_H
         # for heuristics
 
         self.num_free_slots_init = 0

@@ -35,7 +35,7 @@ def final_H(state: State):
 
 
 
-def defencive_H(state: State):
+def improved_H(state: State):
     def count_moves(loc):
         num_steps_available = 0
         for d in directions:
@@ -54,12 +54,12 @@ def dist(loc1,loc2):
 
 def goToEnemy_H(state: State):
 
-    return defencive_H(state)+dist(state.self_loc,state.rival_loc)
+    return improved_H(state) + dist(state.self_loc, state.rival_loc)
 
 
 
 
-def attack_defencive_H(state:State):
+def offensive_To_Defensive_H(state:State):
     distance = dist(state.self_loc,state.rival_loc)
     ratio_available_steps = (state.num_free_slots_init-state.num_captured_slots)/state.num_free_slots_init
     def vacancies_slots(loc, board:Board, search_space):

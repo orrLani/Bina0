@@ -3,7 +3,7 @@ from Heuristics import *
 class AlphaBetaPlayer(MinimaxPlayer):
     def __init__(self):
         super().__init__()
-        self.heuristic = attack_defencive_H
+        self.heuristic = offensive_To_Defensive_H
 
 
     def AB_RB_MiniMax(self,state: State, depth: int, alpha: float, beta: float):

@@ -132,7 +132,7 @@ def get_player(player_type, module):
     return player
 
 def create_flags():
-    d = {'time_to_make_a_move': 2, 'map': 0, 'time_to_set_game_param': 2}
+    d = {'time_to_make_a_move': 1, 'map': 0, 'time_to_set_game_param': 2}
     flags_input = sys.argv[3:]
     assert len(flags_input) % 2 == 0, 'bad flags'
     while len(flags_input) > 0:

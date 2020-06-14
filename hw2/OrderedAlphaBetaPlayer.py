@@ -4,7 +4,7 @@ from Heuristics import *
 class OrderedAlphaBetaPlayer(AlphaBetaPlayer):
     def __init__(self):
         super().__init__()
-        self.heuristic = attack_defencive_H
+        self.heuristic = offensive_To_Defensive_H
         self.sorted_succesors:list = []
 
 
