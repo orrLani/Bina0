@@ -62,32 +62,17 @@ def MaxIG(examples_data:pd.DataFrame):
                 best_feature, best_treshold, bestIG = feature, t, curIG
     return best_feature, float(best_treshold)
     pass
-def basicLeafTest(examples_data:pd.DataFrame):
-    if examples_data.empty:
-        return Node(None, None, [], DEFAULT_CLASSIFICATION)
-
-    classification = majorityClass(examples_data)
-    if allExamplesAreSameClass(classification=classification, examples_data=examples_data):
-        return Node(None, None, [], classification)
-
-    #not a leaf
-    return None
 
 
-class LessThenXExamples:
-    def __init__(self,x):
-        self.x =x
-    def checkOn(self,examples_data:pd.DataFrame):
-        if len(examples_data) <= self.x:
-            return false
-        return true
 
-def ID3(examples_data:pd.DataFrame,selectFeature_f = MaxIG, ifLeafMakeLeaf_f = basicLeafTest):
-    #classification = majorityClass(examples_data)
-    return TDIDT(examples_data, selectFeature_f, ifLeafMakeLeaf_f)
+
+
+
+
+
+
 
 def calcIG(examples,left_examples:pd.DataFrame,right_examples:pd.DataFrame):
-
     def get_counts(df:pd.DataFrame) -> (int, int , int):
         zero_count = len(df.loc[df['diagnosis'] == 0])
         one_count = len(df.loc[df['diagnosis'] == 1])
@@ -111,66 +96,160 @@ def calcIG(examples,left_examples:pd.DataFrame,right_examples:pd.DataFrame):
 
 
 
+class MakeLeaf:
+    def __init__(self,x):
+        self.x =x
 
-def basicTestAndAtLeastXExamples(examples_data: pd.DataFrame, x: int):
-    classification = majorityClass(examples_data)
-    if LessThenXExamples(x).checkOn(examples_data):
-        return Node(None, None, [], classification)
-    return basicLeafTest(examples_data)
+    def lessThan(self,examples_data:pd.DataFrame):
+        if len(examples_data) <= self.x:
+            return True
+        return False
 
+    def basicLeafTest(self,examples_data: pd.DataFrame):
+        if examples_data.empty:
+            return Node(None, None, [], DEFAULT_CLASSIFICATION)
 
-def TDIDT(examples_data:pd.DataFrame, selectFeature_f, ifLeafMakeLeaf_f = basicLeafTest):
-    # if decision to make a leafe then a leaf node returned
-    # else leaf is None
-    leaf = ifLeafMakeLeaf_f(examples_data)
-    if leaf is not None:
-        return leaf
-    # if here this is not a leaf and continue to partition to children nodes
-    classification = majorityClass(examples_data)
-    feature, treshold = selectFeature_f(examples_data)
-    left_child = TDIDT(examples_data[examples_data[feature] <= treshold], selectFeature_f, ifLeafMakeLeaf_f)
-    right_child = TDIDT(examples_data[examples_data[feature] > treshold], selectFeature_f, ifLeafMakeLeaf_f)
-    return Node(feature, treshold, [left_child, right_child], classification)
+        classification = majorityClass(examples_data)
+        if allExamplesAreSameClass(classification=classification, examples_data=examples_data):
+            return Node(None, None, [], classification)
+
+        return None
+
+    def basicTestAndAtLeastXExamples(self,examples_data: pd.DataFrame):
+        classification = majorityClass(examples_data)
+        if self.lessThan(examples_data):
+            return Node(None, None, [], classification)
+        return self.basicLeafTest(examples_data)
+
 
 def DT_Classify(obj:pd.DataFrame , tree:Node):
     if len(tree.children)==0:
         return tree.classification
     return DT_Classify(obj, tree.getNextChild(obj))
 
+
+
+    #not a leaf
+    return None
+
+
+
+
+
+def TDIDT(examples_data:pd.DataFrame, selectFeature_f, makeLeaf=MakeLeaf(math.inf)):
+    # if decision to make a leafe then a leaf node returned
+    # else leaf is None
+
+
+    leaf = makeLeaf.basicTestAndAtLeastXExamples(examples_data)
+    if leaf is not None:
+        return leaf
+    # if here this is not a leaf and continue to partition to children nodes
+    classification = majorityClass(examples_data)
+    feature, treshold = selectFeature_f(examples_data)
+    left_child = TDIDT(examples_data[examples_data[feature] <= treshold], selectFeature_f, makeLeaf)
+    right_child = TDIDT(examples_data[examples_data[feature] > treshold], selectFeature_f, makeLeaf)
+    return Node(feature, treshold, [left_child, right_child], classification)
+
+
+
 RECALC = 1
+
+def ID3(examples_data:pd.DataFrame,selectFeature_f=MaxIG, makeLeaf=MakeLeaf(math.inf)):
+    #classification = majorityClass(examples_data)
+    return TDIDT(examples_data, selectFeature_f, makeLeaf)
+
+
+
 if __name__ == '__main__':
 
     train_data:pd.DataFrame =pd.read_csv('train.csv')
     test_data : pd.DataFrame= pd.read_csv('test.csv')
     start_time = time.time()
     classifier = None
-    classifier_3_27 = ID3(train_data, MaxIG, basicTestAndAtLeastXExamples(27))
-    classifier_3_9 = ID3(train_data, MaxIG, basicTestAndAtLeastXExamples(9))
-    classifier_3_3 = ID3(train_data, MaxIG, basicTestAndAtLeastXExamples(3))
-    classifier_2_test = ID3(train_data)
+    classifier_3_27 = ID3(train_data, MaxIG, MakeLeaf(27))
+    classifier_3_9 = ID3(train_data, MaxIG, MakeLeaf(9))
+    classifier_3_3 = ID3(train_data, MaxIG, MakeLeaf(3))
+    # classifier_2_test = ID3(train_data)
 
     if RECALC ==1:
         start_time = time.time()
-        classifier = TDIDT(train_data, MaxIG)
+        classifier = ID3(train_data, MaxIG)
         time_ = time.time() -start_time
         print(str(time))
-        to_file = open("ClassifierBuild_1", "wb")
+
+        to_file = open("classifier_build", "wb")
         pickle.dump(classifier, to_file)
         to_file.close()
+
+        to_file = open("classifier_3_27_build", "wb")
+        pickle.dump(classifier_3_27, to_file)
+        to_file.close()
+
+        to_file = open("classifier_3_9_build", "wb")
+        pickle.dump(classifier_3_9, to_file)
+        to_file.close()
+
+        to_file = open("classifier_3_3_build", "wb")
+        pickle.dump(classifier_3_3, to_file)
+        to_file.close()
+
+
     else:
-        from_file = open("ClassifierBuild_1","rb")
+        from_file = open("classifier_3_3_build","rb")
         classifier = pickle.load(from_file)
         from_file.close()
 
+
+
+
     ok =0
     not_ok =0
+
+    # for classifie
     for example in test_data.iterrows():
-        if DT_Classify(example,classifier)==example[1]['diagnosis']:
+        if DT_Classify(example, classifier) == example[1]['diagnosis']:
+            ok += 1
+        else:
+            not_ok += 1
+
+    total = ok + not_ok
+    print("for classifier  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
+    ok = 0
+    not_ok = 0
+    # for classifier_3_3
+    for example in test_data.iterrows():
+        if DT_Classify(example,classifier_3_3)==example[1]['diagnosis']:
             ok+=1
         else:
             not_ok += 1
+
     total = ok+not_ok
-    print("ok: "+str(ok/total)+" not ok: "+str(not_ok/total))
+    print("for classifier_3_3  ok: "+str(ok/total)+" not ok: "+str(not_ok/total))
+
+    # for classifier_3_9
+    ok = 0
+    not_ok = 0
+    for example in test_data.iterrows():
+        if DT_Classify(example, classifier_3_9) == example[1]['diagnosis']:
+            ok += 1
+        else:
+            not_ok += 1
+
+    total = ok + not_ok
+    print("for classifier_3_9  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
+
+    # for classifier_3_27
+    ok = 0
+    not_ok = 0
+    for example in test_data.iterrows():
+        if DT_Classify(example, classifier_3_27) == example[1]['diagnosis']:
+            ok += 1
+        else:
+            not_ok += 1
+
+    total = ok + not_ok
+    print("for classifier_3_27  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
 
     pass
 
