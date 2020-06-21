@@ -167,24 +167,23 @@ if __name__ == '__main__':
     test_data : pd.DataFrame= pd.read_csv('test.csv')
     start_time = time.time()
     classifier = None
-    classifier_3_27 = ID3(train_data, MaxIG, MakeLeaf(27))
+   #classifier_3_27 = ID3(train_data, MaxIG, MakeLeaf(27))
     classifier_3_9 = ID3(train_data, MaxIG, MakeLeaf(9))
     classifier_3_3 = ID3(train_data, MaxIG, MakeLeaf(3))
     # classifier_2_test = ID3(train_data)
 
     if RECALC ==1:
-        start_time = time.time()
-        classifier = ID3(train_data, MaxIG)
-        time_ = time.time() -start_time
-        print(str(time))
+        #start_time = time.time()
+        #classifier = ID3(train_data, MaxIG)
+        #time_ = time.time() -start_time
+        #print(str(time))
 
-        to_file = open("classifier_build", "wb")
-        pickle.dump(classifier, to_file)
-        to_file.close()
-
-        to_file = open("classifier_3_27_build", "wb")
-        pickle.dump(classifier_3_27, to_file)
-        to_file.close()
+        #to_file = open("classifier_build", "wb")
+      #  pickle.dump(classifier, to_file)
+      #  to_file.close()
+      #  to_file = open("classifier_3_27_build", "wb")
+      #  pickle.dump(classifier_3_27, to_file)
+      #  to_file.close()
 
         to_file = open("classifier_3_9_build", "wb")
         pickle.dump(classifier_3_9, to_file)
@@ -200,56 +199,53 @@ if __name__ == '__main__':
         classifier = pickle.load(from_file)
         from_file.close()
 
-
-
-
-    ok =0
-    not_ok =0
-
-    # for classifie
-    for example in test_data.iterrows():
-        if DT_Classify(example, classifier) == example[1]['diagnosis']:
-            ok += 1
-        else:
-            not_ok += 1
-
-    total = ok + not_ok
-    print("for classifier  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
+    # ok =0
+    # not_ok =0
+    #
+    # # for classifie
+    # for example in test_data.iterrows():
+    #     if DT_Classify(example, classifier) == example[1]['diagnosis']:
+    #         ok += 1
+    #     else:
+    #         not_ok += 1
+    #
+    # total = ok + not_ok
+    # print("for classifier  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
     ok = 0
     not_ok = 0
     # for classifier_3_3
     for example in test_data.iterrows():
-        if DT_Classify(example,classifier_3_3)==example[1]['diagnosis']:
-            ok+=1
-        else:
-            not_ok += 1
+         if DT_Classify(example,classifier_3_3)==example[1]['diagnosis']:
+             ok+=1
+         else:
+             not_ok += 1
 
     total = ok+not_ok
     print("for classifier_3_3  ok: "+str(ok/total)+" not ok: "+str(not_ok/total))
 
-    # for classifier_3_9
+    # # for classifier_3_9
     ok = 0
     not_ok = 0
     for example in test_data.iterrows():
-        if DT_Classify(example, classifier_3_9) == example[1]['diagnosis']:
-            ok += 1
-        else:
-            not_ok += 1
+         if DT_Classify(example, classifier_3_9) == example[1]['diagnosis']:
+             ok += 1
+         else:
+             not_ok += 1
 
     total = ok + not_ok
     print("for classifier_3_9  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
 
     # for classifier_3_27
-    ok = 0
-    not_ok = 0
-    for example in test_data.iterrows():
-        if DT_Classify(example, classifier_3_27) == example[1]['diagnosis']:
-            ok += 1
-        else:
-            not_ok += 1
+    #ok = 0
+    #not_ok = 0
+    #for example in test_data.iterrows():
+    #    if DT_Classify(example, classifier_3_27) == example[1]['diagnosis']:
+    #        ok += 1
+    #    else:
+    #        not_ok += 1
 
-    total = ok + not_ok
-    print("for classifier_3_27  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
+    #total = ok + not_ok
+    #print("for classifier_3_27  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
 
     pass
 
