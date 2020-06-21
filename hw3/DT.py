@@ -246,6 +246,7 @@ if __name__ == '__main__':
 
     #total = ok + not_ok
     #print("for classifier_3_27  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
+    # print
 
     pass
 
