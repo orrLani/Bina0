@@ -7,11 +7,16 @@ import pickle
 
 DEFAULT_CLASSIFICATION = 1
 class Node:
-    def __init__(self, feature:str, treshold:float, children:list, classification:int):
+    def __init__(self, feature:str, treshold:float, children:list, classification:int, epsilon:float=0,
+                 num_of_examples_classified_true:int =0,
+                 num_of_examples_classified_false:int =0):
         self.feature = feature
         self.treshold = treshold
         self.children = children
         self.classification = classification
+        self.epsilon = epsilon
+        self.num_of_examples_classified_true = num_of_examples_classified_true
+        self.num_of_examples_classified_false = num_of_examples_classified_false
 
     def getNextChild(self, obj:pd.DataFrame):
         return self.children[0] if obj[1][self.feature] <= self.treshold else self.children[1]
@@ -20,6 +25,15 @@ class Node:
         for child in self.children:
             child.print()
 
+    def getNextChildrenByEpsilon(self,obj:pd.DataFrame):
+        next_children = []
+        if obj[1][self.feature] <= self.treshold + self.epsilon:
+            next_children.append(self.children[0])
+
+        if obj[1][self.feature] > self.treshold - self.epsilon:
+            next_children.append(self.children[1])
+
+        return  next_children
 
 def majorityClass(data: pd.DataFrame)->int:
     # count the values that there Classification is 0
@@ -32,6 +46,15 @@ def majorityClass(data: pd.DataFrame)->int:
         return 1
     else:
         return DEFAULT_CLASSIFICATION
+
+
+def getClassificationCount(data: pd.DataFrame)->(int,int):
+    # count the values that there Classification is 0
+    num_of_examples_classified_false = len(data.loc[data['diagnosis'] == 0])
+    # count the values that there Classification is 1
+    num_of_examples_classified_true = len(data.loc[data['diagnosis'] == 1])
+
+    return num_of_examples_classified_false,num_of_examples_classified_true
 
 
 def get_class_from_example(example: pd.DataFrame) -> int:
@@ -51,8 +74,13 @@ def MaxIG(examples_data:pd.DataFrame):
     #print(len(examples_data))
     for feature in features:
         #print(str(feature))
-        examples_sorted_by_feature =examples_data.sort_values(by=[feature])
-        feature_values_list=list(examples_sorted_by_feature[feature])
+
+        # examples_sorted_by_feature =examples_data.sort_values(by=[feature])
+        # feature_values_list=list(examples_sorted_by_feature[feature])
+        # feature_values_list=list(examples_sorted_by_feature[feature])
+
+        examples_sorted_by_feature =(examples_data[feature]).sort_values(by=[feature])
+        feature_values_list = list(examples_sorted_by_feature)
         tresholds = [(x+y)/2 for x,y in zip(feature_values_list, feature_values_list[1:])]
         for t in tresholds:
             left_examples = examples_data[examples_data[feature] <= t]
@@ -62,13 +90,6 @@ def MaxIG(examples_data:pd.DataFrame):
                 best_feature, best_treshold, bestIG = feature, t, curIG
     return best_feature, float(best_treshold)
     pass
-
-
-
-
-
-
-
 
 
 
@@ -111,15 +132,19 @@ class MakeLeaf:
 
         classification = majorityClass(examples_data)
         if allExamplesAreSameClass(classification=classification, examples_data=examples_data):
-            return Node(None, None, [], classification)
+            return Node(None, None, [], classification,0)
 
         return None
 
     def basicTestAndAtLeastXExamples(self,examples_data: pd.DataFrame):
         classification = majorityClass(examples_data)
         if self.lessThan(examples_data):
-            return Node(None, None, [], classification)
+            num_of_examples_classified_false,num_of_examples_classified_true= getClassificationCount(examples_data)
+            return Node(None, None, [], classification,0,num_of_examples_classified_false,
+                        num_of_examples_classified_true)
         return self.basicLeafTest(examples_data)
+
+
 
 
 def DT_Classify(obj:pd.DataFrame , tree:Node):
@@ -135,7 +160,10 @@ def DT_Classify(obj:pd.DataFrame , tree:Node):
 
 
 
+def calcEpsilon(examples_data:pd.DataFrame) ->float:
+    return examples_data['diagnosis'].std
 
+    pass
 def TDIDT(examples_data:pd.DataFrame, selectFeature_f, makeLeaf=MakeLeaf(math.inf)):
     # if decision to make a leafe then a leaf node returned
     # else leaf is None
@@ -149,7 +177,9 @@ def TDIDT(examples_data:pd.DataFrame, selectFeature_f, makeLeaf=MakeLeaf(math.in
     feature, treshold = selectFeature_f(examples_data)
     left_child = TDIDT(examples_data[examples_data[feature] <= treshold], selectFeature_f, makeLeaf)
     right_child = TDIDT(examples_data[examples_data[feature] > treshold], selectFeature_f, makeLeaf)
-    return Node(feature, treshold, [left_child, right_child], classification)
+
+    return Node(feature, treshold, [left_child, right_child], classification,
+                epsilon=(0.1*calcEpsilon(examples_data)))
 
 
 
