@@ -4,21 +4,67 @@ import pandas as pd
 import math
 import time
 import pickle
-
+import operator
 DEFAULT_CLASSIFICATION = 1
 class Node:
-    def __init__(self, feature:str, treshold:float, children:list, classification:int):
+    def __init__(self, feature:str, treshold:float, children:list, classification:int, epsilon:float=0,
+                 num_of_examples_classified_true:int =0,
+                 num_of_examples_classified_false:int =0):
         self.feature = feature
         self.treshold = treshold
         self.children = children
         self.classification = classification
+        self.epsilon = epsilon
+        self.num_of_examples_classified_true = num_of_examples_classified_true
+        self.num_of_examples_classified_false = num_of_examples_classified_false
 
     def getNextChild(self, obj:pd.DataFrame):
         return self.children[0] if obj[1][self.feature] <= self.treshold else self.children[1]
-    def print(self):
-        print(str(self.feature)+","+str(self.treshold)+","+str(self.classification))
-        for child in self.children:
-            child.print()
+    
+	#def print(self):
+    #   print(str(self.feature)+","+str(self.treshold)+","+str(self.classification))
+    #   for child in self.children:
+    #       child.print()
+
+    def getNextChildrenByEpsilon(self, obj:pd.DataFrame):
+
+        # next_children = []
+        # if obj[1][self.feature] <= self.treshold + self.epsilon:
+        #     next_children.append(self.children[0])
+        #
+        # if obj[1][self.feature] > self.treshold - self.epsilon:
+        #     next_children.append(self.children[1])
+        # return next_children
+
+        if math.fabs(obj[1][self.feature]-self.treshold) <= self.epsilon:
+            return [self.children]
+        else:
+            return [self.getNextChild(obj)]
+        pass
+
+    def DT_Classify(self, obj: pd.DataFrame):
+        if len(self.children) == 0:
+            return self.classification
+        next_child = self.children[0]if obj[1][self.feature] <= self.treshold else self.children[1]
+        return next_child.DT_Classify(obj)
+
+
+    def DTEpsylon_Classify(self, obj: pd.DataFrame):
+        def countNumSimiliarExamplesByEpsilon(tree: Node, obj: pd.DataFrame) -> tuple:
+            if len(tree.children) == 0:
+                return (tree.num_of_examples_classified_true, tree.num_of_examples_classified_false)
+            true_false_tuple = (0, 0)
+            for child in tree.getNextChildrenByEpsilon(obj):
+                true_false_tuple= tuple(map(operator.add,true_false_tuple,countNumSimiliarExamplesByEpsilon(child, obj)))
+            return true_false_tuple
+
+        true_false_tuple = countNumSimiliarExamplesByEpsilon(self,obj)
+        num_of_true_similiar_examples, num_of_false_similiar_examples = true_false_tuple[0], true_false_tuple[1]
+        if num_of_false_similiar_examples == num_of_false_similiar_examples:
+            return DEFAULT_CLASSIFICATION
+        else:
+            return 1 if num_of_true_similiar_examples > num_of_false_similiar_examples else 0
+
 
 
 def majorityClass(data: pd.DataFrame)->int:
@@ -32,6 +78,15 @@ def majorityClass(data: pd.DataFrame)->int:
         return 1
     else:
         return DEFAULT_CLASSIFICATION
+
+
+def getClassificationCount(data: pd.DataFrame)->(int,int):
+    # count the values that there Classification is 0
+    num_of_examples_classified_false = len(data.loc[data['diagnosis'] == 0])
+    # count the values that there Classification is 1
+    num_of_examples_classified_true = len(data.loc[data['diagnosis'] == 1])
+
+    return num_of_examples_classified_false,num_of_examples_classified_true
 
 
 def get_class_from_example(example: pd.DataFrame) -> int:
@@ -51,8 +106,15 @@ def MaxIG(examples_data:pd.DataFrame):
     #print(len(examples_data))
     for feature in features:
         #print(str(feature))
-        examples_sorted_by_feature =examples_data.sort_values(by=[feature])
-        feature_values_list=list(examples_sorted_by_feature[feature])
+
+        # examples_sorted_by_feature =examples_data.sort_values(by=[feature])
+        # feature_values_list=list(examples_sorted_by_feature[feature])
+        # feature_values_list=list(examples_sorted_by_feature[feature])
+
+        #examples_sorted_by_feature =(examples_data[feature]).sort_values(by=[feature])
+        examples_data.sort_values(by=[feature])
+        examples_sorted_by_feature = examples_data[feature]
+        feature_values_list = list(examples_sorted_by_feature)
         tresholds = [(x+y)/2 for x,y in zip(feature_values_list, feature_values_list[1:])]
         for t in tresholds:
             left_examples = examples_data[examples_data[feature] <= t]
@@ -65,7 +127,10 @@ def MaxIG(examples_data:pd.DataFrame):
 
 
 
-
+def DT_Classify(obj: pd.DataFrame, tree: Node):
+        if len(tree.children) == 0:
+            return tree.classification
+        return DT_Classify(obj, tree.getNextChild(obj))
 
 
 
@@ -107,35 +172,30 @@ class MakeLeaf:
 
     def basicLeafTest(self,examples_data: pd.DataFrame):
         if examples_data.empty:
-            return Node(None, None, [], DEFAULT_CLASSIFICATION)
+            return Node(None, None, [], DEFAULT_CLASSIFICATION, getClassificationCount(examples_data))
 
         classification = majorityClass(examples_data)
         if allExamplesAreSameClass(classification=classification, examples_data=examples_data):
-            return Node(None, None, [], classification)
+            return Node(None, None, [], classification,0, getClassificationCount(examples_data))
 
         return None
 
     def basicTestAndAtLeastXExamples(self,examples_data: pd.DataFrame):
         classification = majorityClass(examples_data)
+        #num_of_examples_classified_false, num_of_examples_classified_true = getClassificationCount(examples_data)
         if self.lessThan(examples_data):
-            return Node(None, None, [], classification)
+            #num_of_examples_classified_false,num_of_examples_classified_true= getClassificationCount(examples_data)
+            return Node(None, None, [], classification,0, getClassificationCount(examples_data))
         return self.basicLeafTest(examples_data)
+
+
 
 
 def DT_Classify(obj:pd.DataFrame , tree:Node):
     if len(tree.children)==0:
         return tree.classification
     return DT_Classify(obj, tree.getNextChild(obj))
-
-
-
-    #not a leaf
-    return None
-
-
-
-
-
+    pass
 def TDIDT(examples_data:pd.DataFrame, selectFeature_f, makeLeaf=MakeLeaf(math.inf)):
     # if decision to make a leafe then a leaf node returned
     # else leaf is None
@@ -149,7 +209,9 @@ def TDIDT(examples_data:pd.DataFrame, selectFeature_f, makeLeaf=MakeLeaf(math.in
     feature, treshold = selectFeature_f(examples_data)
     left_child = TDIDT(examples_data[examples_data[feature] <= treshold], selectFeature_f, makeLeaf)
     right_child = TDIDT(examples_data[examples_data[feature] > treshold], selectFeature_f, makeLeaf)
-    return Node(feature, treshold, [left_child, right_child], classification)
+
+    return Node(feature, treshold, [left_child, right_child], classification,
+                epsilon=(0.1*float(examples_data['diagnosis'].std())))
 
 
 
@@ -168,9 +230,11 @@ if __name__ == '__main__':
     start_time = time.time()
     classifier = None
    #classifier_3_27 = ID3(train_data, MaxIG, MakeLeaf(27))
-    classifier_3_9 = ID3(train_data, MaxIG, MakeLeaf(9))
-    classifier_3_3 = ID3(train_data, MaxIG, MakeLeaf(3))
+    #classifier_3_9 = ID3(train_data, MaxIG, MakeLeaf(9))
+    #classifier_3_3 = ID3(train_data, MaxIG, MakeLeaf(3))
     # classifier_2_test = ID3(train_data)
+
+
 
     if RECALC ==1:
         #start_time = time.time()
@@ -185,18 +249,25 @@ if __name__ == '__main__':
       #  pickle.dump(classifier_3_27, to_file)
       #  to_file.close()
 
-        to_file = open("classifier_3_9_build", "wb")
-        pickle.dump(classifier_3_9, to_file)
-        to_file.close()
+        # to_file = open("classifier_3_9_build", "wb")
+        # pickle.dump(classifier_3_9, to_file)
+        # to_file.close()
 
-        to_file = open("classifier_3_3_build", "wb")
-        pickle.dump(classifier_3_3, to_file)
+        # to_file = open("classifier_3_3_build", "wb")
+        # pickle.dump(classifier_3_3, to_file)
+        # to_file.close()
+        start_time = time.time()
+        classifier_epsilon = ID3(train_data, MaxIG, MakeLeaf(9))
+        time = time.time()-start_time
+        print(str(time))
+        to_file = open("classifier_epsylon_build", "wb")
+        pickle.dump(classifier_epsilon, to_file)
         to_file.close()
 
 
     else:
-        from_file = open("classifier_3_3_build","rb")
-        classifier = pickle.load(from_file)
+        from_file = open("classifier_epsylon_build","rb")
+        classifier_epsilon = pickle.load(from_file)
         from_file.close()
 
     # ok =0
@@ -214,23 +285,32 @@ if __name__ == '__main__':
     ok = 0
     not_ok = 0
     # for classifier_3_3
+    # for example in test_data.iterrows():
+    #      if DT_Classify(example,classifier_epsilon)==example[1]['diagnosis']:
+    #          ok+=1
+    #      else:
+    #          not_ok += 1
+    # 
+    # total = ok+not_ok
+    # print("for classifier_3_3  ok: "+str(ok/total)+" not ok: "+str(not_ok/total))
+    # pass
     for example in test_data.iterrows():
-         if DT_Classify(example,classifier_3_3)==example[1]['diagnosis']:
+         if classifier_epsilon.DTEpsylon_Classify(example)==example[1]['diagnosis']:
              ok+=1
          else:
              not_ok += 1
 
     total = ok+not_ok
     print("for classifier_3_3  ok: "+str(ok/total)+" not ok: "+str(not_ok/total))
-
+    pass
     # # for classifier_3_9
     ok = 0
     not_ok = 0
-    for example in test_data.iterrows():
-         if DT_Classify(example, classifier_3_9) == example[1]['diagnosis']:
-             ok += 1
-         else:
-             not_ok += 1
+    # for example in test_data.iterrows():
+    #      if DT_Classify(example, classifier_3_9) == example[1]['diagnosis']:
+    #          ok += 1
+    #      else:
+    #          not_ok += 1
 
     total = ok + not_ok
     print("for classifier_3_9  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
