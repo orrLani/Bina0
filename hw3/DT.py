@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import sklearn
 import pandas as pd
 import math
@@ -6,6 +6,7 @@ import time
 import pickle
 import operator
 DEFAULT_CLASSIFICATION = 1
+DEBUG =1
 class Node:
     def __init__(self, feature:str, treshold:float, children:list, classification:int, epsilon:float=0,
                  data: pd.DataFrame = None):
@@ -14,8 +15,8 @@ class Node:
         self.children = children
         self.classification = classification
         self.epsilon = epsilon
-        self.num_of_examples_classified_true = len(data.loc[data['diagnosis'] == 1]) if data is not None else 0
-        self.num_of_examples_classified_false = len(data.loc[data['diagnosis'] == 0]) if data is not None else 0
+        self.num_of_examples_classified_true = data['diagnosis'].sum() if data is not None else 0
+        self.num_of_examples_classified_false = len(data.index) - self.num_of_examples_classified_true if data is not None else 0
 
     def getNextChild(self, obj:pd.DataFrame):
         return self.children[0] if obj[1][self.feature] <= self.treshold else self.children[1]
@@ -34,10 +35,16 @@ class Node:
         # if obj[1][self.feature] > self.treshold - self.epsilon:
         #     next_children.append(self.children[1])
         # return next_children
-
+        # if DEBUG ==1:
+        #     print("feature : "+str(self.feature)+ " treshold : "+str(self.treshold)+ " epsilon : " +str(self.epsilon))
+        #     print ("object feature value :" + str(obj[1][self.feature]))
         if math.fabs(obj[1][self.feature]-self.treshold) <= self.epsilon:
+            # if DEBUG == 1:
+            #     print("meets epsilon condition")
             return self.children
         else:
+            # if DEBUG == 1:
+            #     print("doesnt meet epsilon condition")
             return [self.getNextChild(obj)]
         pass
 
@@ -57,7 +64,7 @@ class Node:
                 return [tree.num_of_examples_classified_true, tree.num_of_examples_classified_false]
             total_true_false_duo = [0, 0]
             for child in tree.getNextChildrenByEpsilon(obj):
-                #print("child of "+ str(i))
+                # print("feature : "+str(tree.feature)+ " treshold : "+str(tree.treshold)+ " epsilon : " +str(tree.epsilon))
                 child_true_false_duo = countNumSimiliarExamplesByEpsilon(child, obj)
                 #print("child of "+ str(i)+"ok")
                 total_true_false_duo = sumListAsVector(total_true_false_duo, child_true_false_duo)
@@ -65,7 +72,7 @@ class Node:
 
         total_true_false_duo = countNumSimiliarExamplesByEpsilon(self,obj)
         num_of_true_similiar_examples, num_of_false_similiar_examples =  total_true_false_duo
-        if num_of_false_similiar_examples == num_of_false_similiar_examples:
+        if num_of_true_similiar_examples == num_of_false_similiar_examples:
             return DEFAULT_CLASSIFICATION
         else:
             return 1 if num_of_true_similiar_examples > num_of_false_similiar_examples else 0
@@ -73,10 +80,11 @@ class Node:
 
 
 def majorityClass(data: pd.DataFrame)->int:
-    # count the values that there Classification is 0
-    classification_zero = len(data.loc[data['diagnosis'] == 0])
+
     # count the values that there Classification is 1
-    classification_one = len(data.loc[data['diagnosis'] == 1])
+    classification_one = data['diagnosis'].sum()
+    # count the values that there Classification is 0
+    classification_zero = len(data.index) - classification_one
     if classification_zero > classification_one :
         return 0
     elif classification_zero < classification_one:
@@ -143,9 +151,12 @@ def DT_Classify(obj: pd.DataFrame, tree: Node):
 
 def calcIG(examples,left_examples:pd.DataFrame,right_examples:pd.DataFrame):
     def get_counts(df:pd.DataFrame) -> (int, int , int):
-        zero_count = len(df.loc[df['diagnosis'] == 0])
-        one_count = len(df.loc[df['diagnosis'] == 1])
-        return zero_count,one_count,(zero_count+one_count)
+        one_count = df['diagnosis'].sum()
+        total_count = len(df.index)
+        zero_count=total_count-one_count
+        #zero_count = len(df.loc[df['diagnosis'] == 0])
+        #one_count = len(df.loc[df['diagnosis'] == 1])
+        return zero_count,one_count,total_count
 
     def calculate(numerator,denominator) -> float :
         if float(numerator) == 0:
@@ -156,18 +167,17 @@ def calcIG(examples,left_examples:pd.DataFrame,right_examples:pd.DataFrame):
     left_count_zero, left_count_one,left_count_total =get_counts(left_examples)
     right_count_zero, right_count_one, right_count_total = get_counts(right_examples)
     father_count_zero, father_count_one, father_count_total = get_counts(examples)
-    left_h =- (calculate(left_count_zero,left_count_total)+calculate(left_count_one,left_count_total))
+    left_h =- (calculate(left_count_zero,left_count_total) + calculate(left_count_one,left_count_total))
     right_h = - (calculate(right_count_zero, right_count_total) + calculate(right_count_one, right_count_total))
     father_h = - (calculate(father_count_zero, father_count_total) + calculate(father_count_one, father_count_total))
-
-    return  father_h -((left_count_total/father_count_total)*left_h)- ((right_count_total/father_count_total)*right_h)
+    return  father_h -((left_count_total/father_count_total)*left_h) - ((right_count_total/father_count_total)*right_h)
 
 
 
 
 class MakeLeaf:
     def __init__(self, minimum_example_limit):
-        self.minimum_example_limit =minimum_example_limit
+        self.minimum_example_limit = minimum_example_limit
 
     def examplesLessThanLimit(self, examples_data:pd.DataFrame):
         if len(examples_data) <= self.minimum_example_limit:
@@ -181,7 +191,6 @@ class MakeLeaf:
         classification = majorityClass(examples_data)
         if allExamplesAreSameClass(classification=classification, examples_data=examples_data):
             return Node(None, None, [], classification,  data = examples_data)
-
         return None
 
     def basicTestAndAtLeastXExamples(self,examples_data: pd.DataFrame):
@@ -200,23 +209,27 @@ def DT_Classify(obj:pd.DataFrame , tree:Node):
         return tree.classification
     return DT_Classify(obj, tree.getNextChild(obj))
     pass
+
+
+global_training_data = pd.read_csv('train.csv')
 def TDIDT(examples_data:pd.DataFrame, selectFeature_f, makeLeaf=MakeLeaf(0)):
     # if decision to make a leafe then a leaf node returned
     # else leaf is None
-
-
+    total_len =len(examples_data)
+    print(total_len)
     leaf = makeLeaf.basicTestAndAtLeastXExamples(examples_data)
     if leaf is not None:
         return leaf
     # if here this is not a leaf and continue to partition to children nodes
     classification = majorityClass(examples_data)
+    start_time = time.time()
     feature, treshold = selectFeature_f(examples_data)
+    print("num examples "+str(total_len)+" time: "+ str(time.time()-start_time))
     left_child = TDIDT(examples_data[examples_data[feature] <= treshold], selectFeature_f, makeLeaf)
     right_child = TDIDT(examples_data[examples_data[feature] > treshold], selectFeature_f, makeLeaf)
 
     return Node(feature, treshold, [left_child, right_child], classification,
-                epsilon=(0.1*float(examples_data['diagnosis'].std())))
-
+                epsilon=0.1*float(np.std(examples_data[feature].to_list())) )
 
 
 RECALC = 0
@@ -224,6 +237,8 @@ RECALC = 0
 def ID3(examples_data:pd.DataFrame,selectFeature_f=MaxIG, makeLeaf=MakeLeaf(0)):
     #classification = majorityClass(examples_data)
     return TDIDT(examples_data, selectFeature_f, makeLeaf)
+
+
 ##############################################################################
 def getClassifier(name, train_data, min_example_limit=0, recalc=0):
     if recalc == 1:
@@ -278,6 +293,7 @@ def TestEpsylon(name ,classifier : Node, test_data, train_data=None):
     if train_data is not None:
         ok=0
         not_ok=0
+        DEBUG =0
         for example in train_data.iterrows():
             if classifier.DTEpsylon_Classify(example) == example[1]['diagnosis']:
                 ok += 1
@@ -291,13 +307,18 @@ def TestEpsylon(name ,classifier : Node, test_data, train_data=None):
         print("##########################################################################################")
     ok = 0
     not_ok = 0
+    DEBUG =1
+    i = 1
     for example in test_data.iterrows():
         if classifier.DTEpsylon_Classify(example) == example[1]['diagnosis']:
+            #print("example "+str(i)+" : true ")
             ok += 1
         else:
+            #print("example " + str(i) + " : false")
             not_ok += 1
-        # i += 1
+        i += 1
         # print(str(i))
+        DEBUG =0
     total = ok + not_ok
     print("Real Test results for Epsylon Classifier : " + name)
     print("Correct Answers: " + str(ok / total) + "     Incorrect Answers: " + str(not_ok / total))
@@ -310,14 +331,17 @@ if __name__ == '__main__':
 
     train_data:pd.DataFrame =pd.read_csv('train.csv')
     test_data : pd.DataFrame= pd.read_csv('test.csv')
+    # features = [f for f in  train_data.columns[1:]]
+    # for f in features:
+    #     print (0.1*train_data[f].std())
 
     classifier_reg = getClassifier("classifier_reg",train_data, recalc =0)
     TestBasic("Basic Classifier", classifier_reg, test_data,train_data)
     TestEpsylon("Basic Classifier", classifier_reg, test_data,train_data)
 
-    classifier_9 = getClassifier("classifier_reg_def_class_false",train_data,min_example_limit=9 ,recalc =1)
+    classifier_9 = getClassifier("classifier_reg_def_class_false",train_data,min_example_limit=9,recalc =0)
     TestBasic("classifier_9", classifier_9, test_data,train_data)
-    TestEpsylon("classifier_9", classifier_9, test_data,train_data)
+    TestEpsylon("classifier_9", classifier_9, test_data, train_data)
 
 
     pass
