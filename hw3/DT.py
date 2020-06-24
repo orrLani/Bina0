@@ -14,8 +14,16 @@ class Node:
         self.children = children
         self.classification = classification
         self.epsilon = epsilon
-        self.num_of_examples_classified_true = len(data.loc[data['diagnosis'] == 1]) if data is not None else 0
-        self.num_of_examples_classified_false = len(data.loc[data['diagnosis'] == 0]) if data is not None else 0
+        if data is not None:
+            one_count = data['diagnosis'].sum()
+            total_count = len(data['diagnosis'].index)
+            zero_count = total_count-one_count
+            self.num_of_examples_classified_true = one_count
+            self.num_of_examples_classified_false = zero_count
+        else:
+            self.num_of_examples_classified_true = 0
+            self.num_of_examples_classified_false = 0
+
 
     def getNextChild(self, obj:pd.DataFrame):
         return self.children[0] if obj[1][self.feature] <= self.treshold else self.children[1]
@@ -71,12 +79,15 @@ class Node:
             return 1 if num_of_true_similiar_examples > num_of_false_similiar_examples else 0
 
 
-
 def majorityClass(data: pd.DataFrame)->int:
     # count the values that there Classification is 0
-    classification_zero = len(data.loc[data['diagnosis'] == 0])
+    one_count = data['diagnosis'].sum()
+    total_count = len(data['diagnosis'].index)
+    zero_count = total_count - one_count
+
+    classification_zero = zero_count
     # count the values that there Classification is 1
-    classification_one = len(data.loc[data['diagnosis'] == 1])
+    classification_one = one_count
     if classification_zero > classification_one :
         return 0
     elif classification_zero < classification_one:
@@ -87,9 +98,12 @@ def majorityClass(data: pd.DataFrame)->int:
 
 def getClassificationCount(data: pd.DataFrame)-> list:
     # count the values that there Classification is 1
-    num_of_examples_classified_true = len(data.loc[data['diagnosis'] == 1])
+    one_count = data['diagnosis'].sum()
+    total_count = len(data['diagnosis'].index)
+    zero_count = total_count - one_count
+    num_of_examples_classified_true = one_count
     # count the values that there Classification is 0
-    num_of_examples_classified_false = len(data.loc[data['diagnosis'] == 0])
+    num_of_examples_classified_false = zero_count
 
     return [num_of_examples_classified_true,num_of_examples_classified_false]
 
@@ -104,11 +118,24 @@ def allExamplesAreSameClass(classification, examples_data: pd.DataFrame) -> bool
             return None
     return True
 
+global start_time
+def calculate_time(string):
+    global start_time
+    if string=="INIT":
+        start_time=time.time()
+        return
+    diff=float(time.time()-start_time)
+    print(string+str(diff))
+    start_time = time.time()
+
+
+
 
 def MaxIG(examples_data:pd.DataFrame):
+    calculate_time("INIT")
     best_feature, best_treshold, bestIG = None, 0, 0
+    #values=examples_data.values.tolist()
     features = [f for f in examples_data.columns[1:]]
-    #print(len(examples_data))
     for feature in features:
         #print(str(feature))
 
@@ -117,16 +144,23 @@ def MaxIG(examples_data:pd.DataFrame):
         # feature_values_list=list(examples_data_sorted_by_feature[feature])
         #examples_sorted_by_feature =(examples_data[feature]).sort_values(by=[feature])
         #examples_data.sort_values(by=[feature])
+        #start_time=time.time()
         examples_data_sorted_by_feature = examples_data.sort_values(by=[feature])
+        # print("the diff time 2 is" + str(time.time() - start_time))
         feature_values_list = list(examples_data_sorted_by_feature[feature])
         tresholds = [(x+y)/2 for x,y in zip(feature_values_list, feature_values_list[1:])]
         for t in tresholds:
+
             left_examples = examples_data[examples_data[feature] <= t]
             right_examples = examples_data[examples_data[feature] > t]
             curIG = calcIG(examples_data, left_examples, right_examples)
             if curIG > bestIG:
                 best_feature, best_treshold, bestIG = feature, t, curIG
+            #calculate_time(str(len(tresholds))+"next tra")
+        #calculate_time("next feature")
+    calculate_time("calculate_fecture")
     return best_feature, float(best_treshold)
+
     pass
 
 
@@ -142,10 +176,14 @@ def DT_Classify(obj: pd.DataFrame, tree: Node):
 
 
 def calcIG(examples,left_examples:pd.DataFrame,right_examples:pd.DataFrame):
+   # start_time= time.time()
     def get_counts(df:pd.DataFrame) -> (int, int , int):
-        zero_count = len(df.loc[df['diagnosis'] == 0])
-        one_count = len(df.loc[df['diagnosis'] == 1])
-        return zero_count,one_count,(zero_count+one_count)
+        one_count=df['diagnosis'].sum()
+        total_count= len(df['diagnosis'].index)
+        zero_count = total_count-one_count
+        #zero_count = len(df.loc[df['diagnosis'] == 0])
+        #one_count = len(df.loc[df['diagnosis'] == 1])
+        return zero_count,one_count,(total_count)
 
     def calculate(numerator,denominator) -> float :
         if float(numerator) == 0:
@@ -159,8 +197,10 @@ def calcIG(examples,left_examples:pd.DataFrame,right_examples:pd.DataFrame):
     left_h =- (calculate(left_count_zero,left_count_total)+calculate(left_count_one,left_count_total))
     right_h = - (calculate(right_count_zero, right_count_total) + calculate(right_count_one, right_count_total))
     father_h = - (calculate(father_count_zero, father_count_total) + calculate(father_count_one, father_count_total))
+   # print("the diff time is"+str(time.time()-start_time))
 
     return  father_h -((left_count_total/father_count_total)*left_h)- ((right_count_total/father_count_total)*right_h)
+
 
 
 
@@ -204,16 +244,19 @@ def TDIDT(examples_data:pd.DataFrame, selectFeature_f, makeLeaf=MakeLeaf(0)):
     # if decision to make a leafe then a leaf node returned
     # else leaf is None
 
-
+    start_time =time.time()
     leaf = makeLeaf.basicTestAndAtLeastXExamples(examples_data)
     if leaf is not None:
         return leaf
     # if here this is not a leaf and continue to partition to children nodes
     classification = majorityClass(examples_data)
+   # print("time to build calss "+str(time.time()-start_time))
+
     feature, treshold = selectFeature_f(examples_data)
+   # print("time to build node is "+str(time.time()-start_time))
+
     left_child = TDIDT(examples_data[examples_data[feature] <= treshold], selectFeature_f, makeLeaf)
     right_child = TDIDT(examples_data[examples_data[feature] > treshold], selectFeature_f, makeLeaf)
-
     return Node(feature, treshold, [left_child, right_child], classification,
                 epsilon=(0.1*float(examples_data['diagnosis'].std())))
 
@@ -241,6 +284,7 @@ def getClassifier(name, train_data, min_example_limit=0, recalc=0):
         classifier = pickle.load(from_file)
         from_file.close()
         return classifier
+
 
 def TestBasic(name ,classifier : Node, test_data, train_data=None):
     i=0
@@ -311,13 +355,14 @@ if __name__ == '__main__':
     train_data:pd.DataFrame =pd.read_csv('train.csv')
     test_data : pd.DataFrame= pd.read_csv('test.csv')
 
-    classifier_reg = getClassifier("classifier_reg",train_data, recalc =0)
+    classifier_reg = getClassifier("classifier_reg",train_data, recalc =1)
     TestBasic("Basic Classifier", classifier_reg, test_data,train_data)
     TestEpsylon("Basic Classifier", classifier_reg, test_data,train_data)
 
     classifier_9 = getClassifier("classifier_reg_def_class_false",train_data,min_example_limit=9 ,recalc =1)
     TestBasic("classifier_9", classifier_9, test_data,train_data)
     TestEpsylon("classifier_9", classifier_9, test_data,train_data)
+    print("finish!!!!")
 
 
     pass

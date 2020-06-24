@@ -8,9 +8,9 @@ class KNN:
         self.train_data_list = train_data.values.tolist()
         self.max_value_list = [train_data[header].max() for header in self.train_header_list]
         self.min_value_list = [train_data[header].min() for header in self.train_header_list]
-        self.nirmool(self.train_data_list)
+        self.normalization(self.train_data_list)
 
-    def nirmool(self,data:list):
+    def normalization(self,data:list):
         for i in range(0,len(data)):
             for j in range(1, len(data[i])):
                # print(data[i][j])
@@ -49,7 +49,7 @@ class KNN:
         test_data_list_header = test_data.columns.values.tolist()
         test_data_list_values = test_data.values.tolist()
         accuracy_test = 0
-        self.nirmool(test_data_list_values)
+        self.normalization(test_data_list_values)
         for i in range(0, len(test_data_list_values)):
             if test_data_list_values[i][0] ==self.classification(test_data_list_values[i]):
                 accuracy_test+=1
