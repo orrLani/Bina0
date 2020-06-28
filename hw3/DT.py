@@ -15,8 +15,10 @@ class Node:
         self.children = children
         self.classification = classification
         self.epsilon = epsilon
-        self.num_of_examples_classified_true = data['diagnosis'].sum() if data is not None else 0
-        self.num_of_examples_classified_false = len(data.index) - self.num_of_examples_classified_true if data is not None else 0
+        if data is not None:
+            self.num_of_examples_classified_true = data['diagnosis'].sum()
+            self.num_of_examples_classified_false = len(data.index) - self.num_of_examples_classified_true
+            self.examples=data
 
     def getNextChild(self, obj:pd.DataFrame):
         return self.children[0] if obj[1][self.feature] <= self.treshold else self.children[1]
@@ -25,6 +27,33 @@ class Node:
     #   print(str(self.feature)+","+str(self.treshold)+","+str(self.classification))
     #   for child in self.children:
     #       child.print()
+
+    def getAllSimplerExamples(self,obj:pd.DataFrame):
+        def getSimiliarExamplesByEpsilon(tree: Node, obj: pd.DataFrame) -> list:
+            if len(tree.children) == 0:
+                #print("leaf ,child of "+ str(i))
+                return tree.examples.values.tolist()
+            similiar_examples = []
+            for child in tree.getKNN_EPSILONNextChildrenByEpsilon(obj):
+                # print("feature : "+str(tree.feature)+ " treshold : "+str(tree.treshold)+ " epsilon : " +str(tree.epsilon))
+                child_similiar_examples = getSimiliarExamplesByEpsilon(child, obj)
+                #print("child of "+ str(i)+"ok")
+                similiar_examples.extend(child_similiar_examples)
+            return similiar_examples
+
+        return getSimiliarExamplesByEpsilon(self,obj)
+
+
+    def getNextChildKNNEPSILON(self,obj):
+        return self.children[0] if float(obj[self.feature].array[0]) <= self.treshold else self.children[1]
+
+    def getKNN_EPSILONNextChildrenByEpsilon(self, obj:pd.DataFrame):
+        if math.fabs(float(obj[self.feature].array[0]) - self.treshold) <= self.epsilon:
+            return self.children
+        else:
+            return [self.getNextChildKNNEPSILON(obj)]
+        pass
+
 
     def getNextChildrenByEpsilon(self, obj:pd.DataFrame):
 
@@ -208,6 +237,8 @@ def DT_Classify(obj:pd.DataFrame , tree:Node):
         return tree.classification
     return DT_Classify(obj, tree.getNextChild(obj))
     pass
+
+
 def TDIDT(examples_data:pd.DataFrame, selectFeature_f, makeLeaf=MakeLeaf(0)):
     # if decision to make a leafe then a leaf node returned
     # else leaf is None
@@ -221,13 +252,16 @@ def TDIDT(examples_data:pd.DataFrame, selectFeature_f, makeLeaf=MakeLeaf(0)):
     feature, treshold = selectFeature_f(examples_data)
     left_child = TDIDT(examples_data[examples_data[feature] <= treshold], selectFeature_f, makeLeaf)
     right_child = TDIDT(examples_data[examples_data[feature] > treshold], selectFeature_f, makeLeaf)
+    #assert ALL_TRAIN_DATA.equals(examples_data)
     return Node(feature, treshold, [left_child, right_child], classification,
-                epsilon=0.1*float(np.std(examples_data[feature].to_list())) )
+                epsilon=0.1*float(np.std(ALL_TRAIN_DATA[feature].to_list())) )
 
 
 RECALC = 0
 
 def ID3(examples_data:pd.DataFrame,selectFeature_f=MaxIG, makeLeaf=MakeLeaf(0)):
+    global ALL_TRAIN_DATA
+    ALL_TRAIN_DATA = examples_data.copy()
     #classification = majorityClass(examples_data)
     return TDIDT(examples_data, selectFeature_f, makeLeaf)
 
@@ -325,124 +359,20 @@ if __name__ == '__main__':
 
     train_data:pd.DataFrame =pd.read_csv('train.csv')
     test_data : pd.DataFrame= pd.read_csv('test.csv')
+    ALL_TRAIN_DATA =train_data.copy()
     # features = [f for f in  train_data.columns[1:]]
     # for f in features:
     #     print (0.1*train_data[f].std())
 
-    classifier_reg = getClassifier("classifier_reg",train_data, recalc =1)
-    TestBasic("Basic Classifier", classifier_reg, test_data,train_data)
-    TestEpsylon("Basic Classifier", classifier_reg, test_data,train_data)
+  #  classifier_reg = getClassifier("classifier_reg",train_data, recalc =1)
+  #  TestBasic("Basic Classifier", classifier_reg, test_data,train_data)
+  #  TestEpsylon("Basic Classifier", classifier_reg, test_data,train_data)
 
     classifier_9 = getClassifier("classifier_reg_def_class_false",train_data,min_example_limit=9,recalc =0)
-    TestBasic("classifier_9", classifier_9, test_data,train_data)
+    TestBasic("classifier_reg_def_class_false",classifier_9,test_data,train_data)
+   # TestBasic("classifier_9", classifier_9, test_data,train_data)
     TestEpsylon("classifier_9", classifier_9, test_data,train_data)
 
 
     pass
 
-
-    #
-    # if RECALC ==1:
-    #
-    #     start_time = time.time()
-    #     classifier_epsilon = ID3(train_data, MaxIG)
-    #     classifier_reg =
-    #     time = time.time()-start_time
-    #     print(str(time))
-    #     to_file = open("classifier_epsylon_build", "wb")
-    #     pickle.dump(classifier_epsilon, to_file)
-    #     to_file.close()
-    #
-    #
-    # else:
-    #     from_file = open("classifier_epsylon_build","rb")
-    #     classifier_epsilon = pickle.load(from_file)
-    #     from_file.close()
-    #
-    # # ok =0
-    # # not_ok =0
-    # #
-    # # # for classifie
-    # # for example in test_data.iterrows():
-    # #     if DT_Classify(example, classifier) == example[1]['diagnosis']:
-    # #         ok += 1
-    # #     else:
-    # #         not_ok += 1
-    # #
-    # # total = ok + not_ok
-    # # print("for classifier  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
-    # ok = 0
-    # not_ok = 0
-    # # for classifier_3_3
-    # # for example in test_data.iterrows():
-    # #      if DT_Classify(example,classifier_epsilon)==example[1]['diagnosis']:
-    # #          ok+=1
-    # #      else:
-    # #          not_ok += 1
-    # #
-    # # total = ok+not_ok
-    # # print("for classifier_3_3  ok: "+str(ok/total)+" not ok: "+str(not_ok/total))
-    # # pass
-    # i=0
-    # for example in train_data.iterrows():
-    #
-    #      if classifier_epsilon.DTEpsylon_Classify(example)==example[1]['diagnosis']:
-    #          ok+=1
-    #      else:
-    #          not_ok += 1
-    #      i+=1
-    #      #print(str(i))
-    #
-    # total = ok+not_ok
-    # print("for classifier_epsylon  ok: "+str(ok/total)+" not ok: "+str(not_ok/total))
-    # for example in train_data.iterrows():
-    #
-    #     if classifier_epsilon.DT_Classify(example) == example[1]['diagnosis']:
-    #         ok += 1
-    #     else:
-    #         not_ok += 1
-    #     i += 1
-    #     #print(str(i))
-    #
-    # total = ok + not_ok
-    # print("for classifier_reg  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
-    #
-    # pass
-    # # exit()
-    # # # # for classifier_3_9
-    # # ok = 0
-    # # not_ok = 0
-    # # # for example in test_data.iterrows():
-    # # #      if DT_Classify(example, classifier_3_9) == example[1]['diagnosis']:
-    # # #          ok += 1
-    # # #      else:
-    # # #          not_ok += 1
-    # #
-    # # total = ok + not_ok
-    # # print("for classifier_3_9  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
-    # #
-    # # # for classifier_3_27
-    # # #ok = 0
-    # # #not_ok = 0
-    # # #for example in test_data.iterrows():
-    # # #    if DT_Classify(example, classifier_3_27) == example[1]['diagnosis']:
-    # # #        ok += 1
-    # # #    else:
-    # # #        not_ok += 1
-    # #
-    # # #total = ok + not_ok
-    # # #print("for classifier_3_27  ok: " + str(ok / total) + " not ok: " + str(not_ok / total))
-    # # # print
-    # #
-    # # pass
-    # #
-    # #
-    # #
-    # #
-    # #
-    # #
-    # #
-    # #
-    # #
-    # #
-    # #

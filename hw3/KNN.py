@@ -2,13 +2,14 @@ import pandas as pd
 import sklearn
 import math
 class KNN:
-    def __init__(self,k:int,train_data:pd.DataFrame):
+    def __init__(self,k:int,train_data:pd.DataFrame,normalization=True):
         self.k = k
         self.train_header_list = train_data.columns.values.tolist()
         self.train_data_list = train_data.values.tolist()
         self.max_value_list = [train_data[header].max() for header in self.train_header_list]
         self.min_value_list = [train_data[header].min() for header in self.train_header_list]
-        self.normalization(self.train_data_list)
+        if normalization:
+            self.normalization(self.train_data_list)
 
     def normalization(self,data:list):
         for i in range(0,len(data)):
